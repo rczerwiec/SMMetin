@@ -28,7 +28,7 @@ settings:
 metins:
   suffering_5:
     display-name: "&6Metin Cierpienia &7[&fLV.5&7]"
-    health: 15
+    health: 50 #bedzie mial 300
     block-material: OAK_LOG
     biomes: [FOREST, BIRCH_FOREST, DARK_FOREST]
     knockback:
@@ -43,26 +43,29 @@ metins:
       interval: 10
     mobs:
       - type: ZOMBIE
-        chance: 0.3
-        amount: 2
+        chance: 0.4
+        amount: 1-2
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.3
-        amount: 2
+        chance: 0.2
+        amount: 1
         spawn-radius: 3
     rewards:
       items:
-        - material: OAK_LOG
+        - material: IRON_INGOT
           amount: "3-6"
           chance: 1.0
-        - material: STICK
-          amount: "2-4"
-          chance: 0.7
-        - material: APPLE
-          amount: "1-2"
+        - material: COAL
+          amount: "5-8"
+          chance: 0.8
+        - material: GOLDEN_APPLE
+          amount: "1"
           chance: 0.3
-      money: "50-100"
-      experience: "100-150"
+        - material: IRON_SWORD
+          amount: "1"
+          chance: 0.25
+      money: "100-200"
+      experience: "10-25"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -77,7 +80,7 @@ metins:
 
   battle_10:
     display-name: "&6Metin Walki &7[&fLV.10&7]"
-    health: 400
+    health: 50 #bedzie mial 400
     block-material: DARK_OAK_LOG
     biomes: [FOREST, BIRCH_FOREST, DARK_FOREST]
     knockback:
@@ -92,26 +95,36 @@ metins:
       interval: 8
     mobs:
       - type: ZOMBIE
-        chance: 0.4
+        chance: 0.5
         amount: 2-3
         spawn-radius: 3
       - type: SKELETON
+        chance: 0.3
+        amount: 1-2
+        spawn-radius: 4
+      - type: SPIDER
         chance: 0.2
         amount: 1
-        spawn-radius: 4
+        spawn-radius: 3
     rewards:
       items:
-        - material: DARK_OAK_LOG
-          amount: "4-8"
-          chance: 1.0
         - material: IRON_INGOT
-          amount: "1-2"
-          chance: 0.4
-        - material: COAL
+          amount: "5-10"
+          chance: 1.0
+        - material: GOLD_INGOT
           amount: "2-4"
-          chance: 0.6
-      money: "100-200"
-      experience: "200-300"
+          chance: 0.7
+        - material: IRON_HELMET
+          amount: "1"
+          chance: 0.4
+        - material: IRON_PICKAXE
+          amount: "1"
+          chance: 0.35
+        - material: GOLDEN_APPLE
+          amount: "1-2"
+          chance: 0.25
+      money: "20-35"
+      experience: "300-500"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -126,7 +139,7 @@ metins:
 
   war_15:
     display-name: "&7Metin Bitwy &7[&fLV.15&7]"
-    health: 500
+    health: 50 #bedzie mial 500
     block-material: STONE
     biomes: [PLAINS, SUNFLOWER_PLAINS]
     knockback:
@@ -141,26 +154,39 @@ metins:
       interval: 8
     mobs:
       - type: ZOMBIE
-        chance: 0.5
-        amount: 3
+        chance: 0.6
+        amount: 2-4
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.3
-        amount: 2
+        chance: 0.4
+        amount: 2-3
         spawn-radius: 4
+      - type: SPIDER
+        chance: 0.3
+        amount: 1-2
+        spawn-radius: 3
     rewards:
       items:
-        - material: STONE
-          amount: "8-16"
+        - material: GOLD_INGOT
+          amount: "6-10"
           chance: 1.0
         - material: IRON_INGOT
-          amount: "2-4"
-          chance: 0.5
-        - material: GOLD_INGOT
+          amount: "8-12"
+          chance: 0.9
+        - material: DIAMOND
           amount: "1-2"
+          chance: 0.5
+        - material: IRON_CHESTPLATE
+          amount: "1"
+          chance: 0.4
+        - material: IRON_LEGGINGS
+          amount: "1"
+          chance: 0.35
+        - material: GOLDEN_APPLE
+          amount: "2"
           chance: 0.3
-      money: "200-400"
-      experience: "400-600"
+      money: "35-60"
+      experience: "500-750"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -175,7 +201,7 @@ metins:
 
   greed_20:
     display-name: "&7Metin Chciwości &7[&fLV.20&7]"
-    health: 650
+    health: 50 #bedzie mial 650
     block-material: COBBLESTONE
     biomes: [PLAINS, SUNFLOWER_PLAINS]
     knockback:
@@ -190,26 +216,42 @@ metins:
       interval: 7
     mobs:
       - type: ZOMBIE
-        chance: 0.5
-        amount: 3
+        chance: 0.7
+        amount: 3-5
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.4
-        amount: 2
+        chance: 0.5
+        amount: 2-3
         spawn-radius: 4
+      - type: CREEPER
+        chance: 0.3
+        amount: 1
+        spawn-radius: 5
     rewards:
       items:
-        - material: COBBLESTONE
-          amount: "12-24"
+        - material: DIAMOND
+          amount: "2-4"
           chance: 1.0
         - material: GOLD_INGOT
+          amount: "8-12"
+          chance: 0.8
+        - material: IRON_BLOCK
           amount: "2-4"
-          chance: 0.4
-        - material: DIAMOND
+          chance: 0.7
+        - material: DIAMOND_PICKAXE
           amount: "1"
-          chance: 0.2
-      money: "400-800"
-      experience: "800-1200"
+          chance: 0.4
+        - material: IRON_BOOTS
+          amount: "1"
+          chance: 0.35
+        - material: ENCHANTED_BOOK
+          amount: "1"
+          chance: 0.3
+        - material: GOLDEN_APPLE
+          amount: "2-3"
+          chance: 0.25
+      money: "60-100"
+      experience: "1000-1500"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -224,7 +266,7 @@ metins:
 
   darkness_25:
     display-name: "&8Metin Czerni &7[&fLV.25&7]"
-    health: 900
+    health: 50 #bedzie mial 900
     block-material: MOSSY_COBBLESTONE
     biomes: [PLAINS, SUNFLOWER_PLAINS]
     knockback:
@@ -239,26 +281,46 @@ metins:
       interval: 6
     mobs:
       - type: ZOMBIE
-        chance: 0.6
-        amount: 3-4
+        chance: 0.8
+        amount: 3-5
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.4
-        amount: 2
+        chance: 0.6
+        amount: 2-4
         spawn-radius: 4
+      - type: CREEPER
+        chance: 0.4
+        amount: 1-2
+        spawn-radius: 5
+      - type: WITCH
+        chance: 0.2
+        amount: 1
+        spawn-radius: 6
     rewards:
       items:
-        - material: MOSSY_COBBLESTONE
-          amount: "16-32"
-          chance: 1.0
         - material: DIAMOND
-          amount: "1-2"
-          chance: 0.3
+          amount: "3-6"
+          chance: 1.0
+        - material: GOLD_BLOCK
+          amount: "1-3"
+          chance: 0.7
         - material: EMERALD
-          amount: "1-2"
-          chance: 0.25
-      money: "800-1600"
-      experience: "1600-2400"
+          amount: "2-4"
+          chance: 0.6
+        - material: DIAMOND_SWORD
+          amount: "1"
+          chance: 0.4
+        - material: DIAMOND_HELMET
+          amount: "1"
+          chance: 0.35
+        - material: ENCHANTED_BOOK
+          amount: "1"
+          chance: 0.5
+        - material: GOLDEN_APPLE
+          amount: "3-4"
+          chance: 0.35
+      money: "100-150"
+      experience: "1500-2000"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -273,7 +335,7 @@ metins:
 
   black_30:
     display-name: "&8Metin Ciemności &7[&fLV.30&7]"
-    health: 1300
+    health: 50 #bedzie mial 1300
     block-material: BLACKSTONE
     biomes: [PLAINS, SUNFLOWER_PLAINS, MOUNTAINS]
     knockback:
@@ -288,26 +350,50 @@ metins:
       interval: 5
     mobs:
       - type: ZOMBIE
-        chance: 0.6
-        amount: 4
+        chance: 0.8
+        amount: 4-6
         spawn-radius: 3
       - type: SKELETON
+        chance: 0.7
+        amount: 3-5
+        spawn-radius: 4
+      - type: CREEPER
         chance: 0.5
-        amount: 2-3
+        amount: 1-2
+        spawn-radius: 5
+      - type: WITCH
+        chance: 0.3
+        amount: 1
+        spawn-radius: 6
+      - type: ENDERMAN
+        chance: 0.15
+        amount: 1
         spawn-radius: 4
     rewards:
       items:
-        - material: BLACKSTONE
-          amount: "24-48"
-          chance: 1.0
         - material: DIAMOND
-          amount: "2-3"
-          chance: 0.35
-        - material: NETHERITE_SCRAP
+          amount: "5-8"
+          chance: 1.0
+        - material: EMERALD
+          amount: "3-6"
+          chance: 0.8
+        - material: DIAMOND_BLOCK
           amount: "1"
-          chance: 0.1
-      money: "1600-3200"
-      experience: "3200-4800"
+          chance: 0.5
+        - material: NETHERITE_SCRAP
+          amount: "1-2"
+          chance: 0.4
+        - material: DIAMOND_CHESTPLATE
+          amount: "1"
+          chance: 0.4
+        - material: ENCHANTED_BOOK
+          amount: "2"
+          chance: 0.6
+        - material: ENCHANTED_GOLDEN_APPLE
+          amount: "1"
+          chance: 0.15
+      money: "150-250"
+      experience: "2000-3000"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -322,7 +408,7 @@ metins:
 
   pain_35:
     display-name: "&8Metin Cierpienia &7[&fLV.35&7]"
-    health: 1800
+    health: 50 #bedzie mial 1800
     block-material: OBSIDIAN
     biomes: [MOUNTAINS, MOUNTAIN_EDGE, GRAVELLY_MOUNTAINS]
     knockback:
@@ -337,30 +423,57 @@ metins:
       interval: 5
     mobs:
       - type: ZOMBIE
-        chance: 0.7
-        amount: 4
+        chance: 0.9
+        amount: 4-6
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.5
-        amount: 3
+        chance: 0.8
+        amount: 3-5
         spawn-radius: 4
-      - type: WITCH
-        chance: 0.2
-        amount: 1
+      - type: CREEPER
+        chance: 0.6
+        amount: 2-3
         spawn-radius: 5
+      - type: WITCH
+        chance: 0.4
+        amount: 1-2
+        spawn-radius: 6
+      - type: ENDERMAN
+        chance: 0.25
+        amount: 1
+        spawn-radius: 4
+      - type: BLAZE
+        chance: 0.15
+        amount: 1
+        spawn-radius: 7
     rewards:
       items:
-        - material: OBSIDIAN
-          amount: "4-8"
-          chance: 1.0
         - material: DIAMOND
-          amount: "3-4"
-          chance: 0.4
-        - material: NETHERITE_SCRAP
+          amount: "8-12"
+          chance: 1.0
+        - material: EMERALD
+          amount: "6-10"
+          chance: 0.8
+        - material: DIAMOND_BLOCK
           amount: "1-2"
+          chance: 0.6
+        - material: NETHERITE_SCRAP
+          amount: "2-3"
+          chance: 0.5
+        - material: DIAMOND_LEGGINGS
+          amount: "1"
+          chance: 0.4
+        - material: ENCHANTED_BOOK
+          amount: "2"
+          chance: 0.7
+        - material: ENCHANTED_GOLDEN_APPLE
+          amount: "1"
+          chance: 0.2
+        - material: TOTEM_OF_UNDYING
+          amount: "1"
           chance: 0.15
-      money: "3200-6400"
-      experience: "6400-9600"
+      money: "250-350"
+      experience: "3000-4000"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -375,7 +488,7 @@ metins:
 
   soul_40:
     display-name: "&5Metin Duszy &7[&fLV.40&7]"
-    health: 2500
+    health: 50 #bedzie mial 2500
     block-material: CRYING_OBSIDIAN
     biomes: [DESERT, DESERT_HILLS, JUNGLE, JUNGLE_HILLS]
     knockback:
@@ -390,30 +503,61 @@ metins:
       interval: 4
     mobs:
       - type: ZOMBIE
-        chance: 0.7
-        amount: 4-5
+        chance: 0.9
+        amount: 5-7
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.6
-        amount: 3
+        chance: 0.8
+        amount: 4-6
         spawn-radius: 4
+      - type: CREEPER
+        chance: 0.7
+        amount: 2-3
+        spawn-radius: 5
       - type: WITCH
+        chance: 0.5
+        amount: 1-2
+        spawn-radius: 6
+      - type: ENDERMAN
         chance: 0.3
         amount: 1-2
-        spawn-radius: 5
+        spawn-radius: 4
+      - type: BLAZE
+        chance: 0.2
+        amount: 1-2
+        spawn-radius: 7
+      - type: PHANTOM
+        chance: 0.15
+        amount: 2-3
+        spawn-radius: 8
     rewards:
       items:
-        - material: CRYING_OBSIDIAN
-          amount: "4-8"
+        - material: DIAMOND_BLOCK
+          amount: "2-3"
           chance: 1.0
-        - material: DIAMOND
-          amount: "4-6"
-          chance: 0.45
+        - material: EMERALD_BLOCK
+          amount: "1-2"
+          chance: 0.7
+        - material: NETHERITE_SCRAP
+          amount: "3-5"
+          chance: 0.6
+        - material: DIAMOND_BOOTS
+          amount: "1"
+          chance: 0.5
+        - material: ENCHANTED_BOOK
+          amount: "3"
+          chance: 0.8
+        - material: ENCHANTED_GOLDEN_APPLE
+          amount: "1-2"
+          chance: 0.3
+        - material: TOTEM_OF_UNDYING
+          amount: "1"
+          chance: 0.25
         - material: NETHERITE_INGOT
           amount: "1"
-          chance: 0.1
-      money: "6400-12800"
-      experience: "12800-19200"
+          chance: 0.2
+      money: "350-500"
+      experience: "4000-5500"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum
@@ -428,7 +572,7 @@ metins:
 
   asylum_45:
     display-name: "&bMetin Azylu &7[&fLV.45&7]"
-    health: 3200
+    health: 50 #bedzie mial 3200
     block-material: BLUE_GLAZED_TERRACOTTA
     biomes: [SNOWY_TUNDRA, SNOWY_MOUNTAINS, FROZEN_OCEAN]
     knockback:
@@ -443,30 +587,71 @@ metins:
       interval: 4
     mobs:
       - type: ZOMBIE
-        chance: 0.8
-        amount: 5
+        chance: 1.0
+        amount: 6-8
         spawn-radius: 3
       - type: SKELETON
-        chance: 0.6
-        amount: 3-4
+        chance: 0.9
+        amount: 5-7
         spawn-radius: 4
+      - type: CREEPER
+        chance: 0.8
+        amount: 3-4
+        spawn-radius: 5
       - type: WITCH
+        chance: 0.6
+        amount: 2-3
+        spawn-radius: 6
+      - type: ENDERMAN
         chance: 0.4
-        amount: 2
+        amount: 1-2
+        spawn-radius: 4
+      - type: BLAZE
+        chance: 0.3
+        amount: 2-3
+        spawn-radius: 7
+      - type: PHANTOM
+        chance: 0.25
+        amount: 3-5
+        spawn-radius: 8
+      - type: WITHER_SKELETON
+        chance: 0.15
+        amount: 1-2
         spawn-radius: 5
     rewards:
       items:
-        - material: LIGHT_BLUE_GLAZED_TERRACOTTA
-          amount: "8-16"
+        - material: DIAMOND_BLOCK
+          amount: "3-5"
           chance: 1.0
-        - material: DIAMOND
-          amount: "6-8"
-          chance: 0.5
+        - material: EMERALD_BLOCK
+          amount: "2-3"
+          chance: 0.9
         - material: NETHERITE_INGOT
           amount: "1-2"
-          chance: 0.15
-      money: "12800-25600"
-      experience: "25600-38400"
+          chance: 0.6
+        - material: NETHERITE_SCRAP
+          amount: "4-8"
+          chance: 0.8
+        - material: ENCHANTED_BOOK
+          amount: "3-4"
+          chance: 0.9
+        - material: ENCHANTED_GOLDEN_APPLE
+          amount: "2-3"
+          chance: 0.4
+        - material: TOTEM_OF_UNDYING
+          amount: "1-2"
+          chance: 0.3
+        - material: DRAGON_EGG
+          amount: "1"
+          chance: 0.05
+        - material: ELYTRA
+          amount: "1"
+          chance: 0.1
+        - material: SHULKER_BOX
+          amount: "1"
+          chance: 0.25
+      money: "500-800"
+      experience: "5500-8000"
     trophy:
       enabled: true
       chance: 0.2  # 20% szansa na wypadnięcie trofeum

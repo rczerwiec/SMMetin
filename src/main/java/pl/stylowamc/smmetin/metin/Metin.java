@@ -30,6 +30,10 @@ import org.bukkit.*;
 import pl.stylowamc.smmetin.Smmetin;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.block.Biome;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,10 +104,28 @@ public class Metin {
         Block above = block.getRelative(BlockFace.UP);
         
         // Sprawdzamy czy blok lub blok nad nim to woda
-        return !block.getType().equals(Material.WATER) && 
+        boolean notWater = !block.getType().equals(Material.WATER) && 
                !above.getType().equals(Material.WATER) &&
                !block.isLiquid() && 
                !above.isLiquid();
+               
+        // Sprawdzamy czy blok lub blok nad nim to liście
+        boolean notLeaves = !block.getType().name().contains("LEAVES") &&
+                !above.getType().name().contains("LEAVES");
+                
+        // Sprawdzamy czy blok lub blok nad nim to barrier
+        boolean notBarrier = !block.getType().equals(Material.BARRIER) &&
+                !above.getType().equals(Material.BARRIER);
+                
+        if (debug && !notLeaves) {
+            debugLog("Nie można utworzyć Metina na liściach drzewa!");
+        }
+        
+        if (debug && !notBarrier) {
+            debugLog("Nie można utworzyć Metina na bloku barrier!");
+        }
+        
+        return notWater && notLeaves && notBarrier;
     }
 
     private void createMetinBlock() {
@@ -601,7 +623,11 @@ public class Metin {
                 
                 meta.setLore(lore);
                 
-                // Ustaw metadane bez dodawania enchantu (efekt świecenia)
+                // Dodaj enchant ale ukryj go
+                meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                
+                // Ustaw metadane z dodanym enchantem i ukrytymi flagami
                 trophy.setItemMeta(meta);
             }
             
@@ -850,6 +876,56 @@ public class Metin {
                     int amount = random.nextInt(maxAmount - minAmount + 1) + minAmount;
                     try {
                         ItemStack item = new ItemStack(Material.valueOf(material.toUpperCase()), amount);
+                        
+                        // Sprawdź, czy przedmiot ma niestandardową nazwę lub lore
+                        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
+                        if (meta != null) {
+                            boolean hasCustomMeta = false;
+                            
+                            // Sprawdź, czy jest niestandardowa nazwa
+                            if (itemConfig.containsKey("name")) {
+                                String displayName = (String) itemConfig.get("name");
+                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
+                                hasCustomMeta = true;
+                                
+                                if (debug) {
+                                    debugLog("Ustawiono niestandardową nazwę przedmiotu: " + displayName);
+                                }
+                            }
+                            
+                            // Sprawdź, czy jest niestandardowe lore
+                            if (itemConfig.containsKey("lore")) {
+                                List<String> lore = new ArrayList<>();
+                                
+                                // Może być listą stringów lub jednym stringiem z nowych linii
+                                Object loreObj = itemConfig.get("lore");
+                                if (loreObj instanceof List) {
+                                    for (Object line : (List<?>) loreObj) {
+                                        lore.add(ChatColor.translateAlternateColorCodes('&', line.toString()));
+                                    }
+                                } else if (loreObj instanceof String) {
+                                    String[] lines = ((String) loreObj).split("\n");
+                                    for (String line : lines) {
+                                        lore.add(ChatColor.translateAlternateColorCodes('&', line));
+                                    }
+                                }
+                                
+                                if (!lore.isEmpty()) {
+                                    meta.setLore(lore);
+                                    hasCustomMeta = true;
+                                    
+                                    if (debug) {
+                                        debugLog("Ustawiono niestandardowe lore przedmiotu: " + lore);
+                                    }
+                                }
+                            }
+                            
+                            // Jeśli były jakiekolwiek niestandardowe metadane, zaktualizuj przedmiot
+                            if (hasCustomMeta) {
+                                item.setItemMeta(meta);
+                            }
+                        }
+                        
                         items.add(item);
                         if (debug) {
                             debugLog("Dodano przedmiot do nagród: " + amount + "x " + material);

@@ -194,12 +194,50 @@ public class RewardsGUI implements Listener {
                     ItemStack rewardItem = new ItemStack(material, amount);
                     ItemMeta meta = rewardItem.getItemMeta();
                     if (meta != null) {
+                        // Ustawienie niestandardowej nazwy, jeśli istnieje
+                        if (rewardMap.containsKey("name")) {
+                            String customName = (String) rewardMap.get("name");
+                            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', customName));
+                            
+                            if (debug()) {
+                                Bukkit.getLogger().info("[SMMetin] Ustawiono niestandardową nazwę: " + customName);
+                            }
+                        }
+                        
+                        // Dodanie informacji o ilości i szansie do lore
                         List<String> lore = new ArrayList<>();
+                        
+                        // Dodanie niestandardowego lore, jeśli istnieje
+                        if (rewardMap.containsKey("lore")) {
+                            Object loreObj = rewardMap.get("lore");
+                            if (loreObj instanceof List) {
+                                for (Object line : (List<?>) loreObj) {
+                                    lore.add(ChatColor.translateAlternateColorCodes('&', line.toString()));
+                                }
+                            } else if (loreObj instanceof String) {
+                                String[] lines = ((String) loreObj).split("\n");
+                                for (String line : lines) {
+                                    lore.add(ChatColor.translateAlternateColorCodes('&', line));
+                                }
+                            }
+                            
+                            if (debug()) {
+                                Bukkit.getLogger().info("[SMMetin] Dodano niestandardowe lore: " + loreObj);
+                            }
+                            
+                            // Dodaj pustą linię po niestandardowym lore
+                            if (!lore.isEmpty()) {
+                                lore.add("");
+                            }
+                        }
+                        
+                        // Dodaj informacje o ilości i szansie
                         lore.add(ChatColor.GRAY + "Ilość: " + ChatColor.YELLOW + amountStr);
                         lore.add(ChatColor.GRAY + "Szansa: " + ChatColor.YELLOW + (chance * 100) + "%");
                         lore.add("");
                         lore.add(ChatColor.YELLOW + "Lewy klik: " + ChatColor.GRAY + "Zmień ilość");
                         lore.add(ChatColor.YELLOW + "Prawy klik: " + ChatColor.GRAY + "Zmień szansę");
+                        
                         meta.setLore(lore);
                         rewardItem.setItemMeta(meta);
                     }
@@ -209,6 +247,10 @@ public class RewardsGUI implements Listener {
                     if (slot >= 54) break;
                 } catch (Exception e) {
                     plugin.getLogger().warning("Błąd wczytywania nagrody: " + e.getMessage());
+                    if (debug()) {
+                        Bukkit.getLogger().severe("[SMMetin] Błąd podczas wczytywania nagrody: " + e.getMessage());
+                        e.printStackTrace();
+                    }
                 }
             }
         } else if (debug()) {
@@ -372,17 +414,36 @@ public class RewardsGUI implements Listener {
                             // Dodaj lore z domyślnymi wartościami
                             ItemMeta meta = placedItem.getItemMeta();
                             if (meta != null) {
-                                List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+                                List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+                                List<String> customLore = new ArrayList<>();
                                 
-                                // Wyczyść istniejące linie dotyczące ilości i szansy
-                                lore.removeIf(line -> 
-                                    line.startsWith(ChatColor.GRAY + "Ilość: ") || 
-                                    line.startsWith(ChatColor.GRAY + "Szansa: ") ||
-                                    line.equals("") ||
-                                    line.startsWith(ChatColor.YELLOW + "Lewy klik: ") ||
-                                    line.startsWith(ChatColor.YELLOW + "Prawy klik: "));
+                                // Zachowaj niestandardowe lore, jeśli istnieje (te, które nie są częścią GUI)
+                                if (meta.hasLore()) {
+                                    for (String line : meta.getLore()) {
+                                        if (!line.startsWith(ChatColor.GRAY + "Ilość: ") &&
+                                            !line.startsWith(ChatColor.GRAY + "Szansa: ") &&
+                                            !line.equals("") &&
+                                            !line.startsWith(ChatColor.YELLOW + "Lewy klik: ") &&
+                                            !line.startsWith(ChatColor.YELLOW + "Prawy klik: ")) {
+                                            customLore.add(line);
+                                        }
+                                    }
+                                }
                                 
-                                // Dodaj nowe informacje
+                                // Wyczyść istniejące lore
+                                lore.clear();
+                                
+                                // Dodaj niestandardowe lore
+                                if (!customLore.isEmpty()) {
+                                    lore.addAll(customLore);
+                                    lore.add(""); // Odstęp po niestandardowym lore
+                                    
+                                    if (debug()) {
+                                        Bukkit.getLogger().info("[SMMetin] Zachowano niestandardowe lore: " + customLore);
+                                    }
+                                }
+                                
+                                // Dodaj nowe informacje o ilości i szansie
                                 lore.add(ChatColor.GRAY + "Ilość: " + ChatColor.YELLOW + "1-1");
                                 lore.add(ChatColor.GRAY + "Szansa: " + ChatColor.YELLOW + "1.0%");
                                 lore.add("");
@@ -394,6 +455,12 @@ public class RewardsGUI implements Listener {
                                 
                                 if (debug()) {
                                     Bukkit.getLogger().info("[SMMetin] Zaktualizowano lore przedmiotu: " + placedItem.getType());
+                                    if (meta.hasDisplayName()) {
+                                        Bukkit.getLogger().info("[SMMetin] Przedmiot ma nazwę: " + meta.getDisplayName());
+                                    }
+                                    if (meta.hasLore()) {
+                                        Bukkit.getLogger().info("[SMMetin] Przedmiot ma lore: " + meta.getLore());
+                                    }
                                 }
                             }
                         }
@@ -789,31 +856,62 @@ public class RewardsGUI implements Listener {
                 double chance = 0.01; // Domyślna wartość (1%)
                 
                 ItemMeta meta = item.getItemMeta();
-                if (meta != null && meta.hasLore()) {
-                    List<String> lore = meta.getLore();
-                    for (String line : lore) {
-                        if (line.startsWith(ChatColor.GRAY + "Ilość: ")) {
-                            String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
-                            if (!valueStr.isEmpty()) {
-                                amountStr = valueStr;
-                            }
-                        } else if (line.startsWith(ChatColor.GRAY + "Szansa: ")) {
-                            String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
-                            if (valueStr.endsWith("%")) {
-                                valueStr = valueStr.substring(0, valueStr.length() - 1);
-                            }
-                            try {
-                                chance = Double.parseDouble(valueStr) / 100.0;
-                            } catch (NumberFormatException ignored) {
-                                if (debug()) {
-                                    Bukkit.getLogger().warning("[SMMetin] Nie można sparsować szansy: " + valueStr);
-                                }
-                            }
+                if (meta != null) {
+                    // Zapisz niestandardową nazwę, jeśli istnieje
+                    if (meta.hasDisplayName()) {
+                        String displayName = meta.getDisplayName();
+                        // Zapisujemy nazwę bez kodów kolorów, aby umożliwić prawidłowe załadowanie
+                        rewardMap.put("name", displayName);
+                        if (debug()) {
+                            Bukkit.getLogger().info("[SMMetin] Zapisuję niestandardową nazwę: " + displayName);
                         }
                     }
-                } else {
-                    if (debug()) {
-                        Bukkit.getLogger().info("[SMMetin] Przedmiot bez lore, używam domyślnych wartości: amount=1-1, chance=1%");
+                    
+                    if (meta.hasLore()) {
+                        List<String> lore = meta.getLore();
+                        List<String> customLore = new ArrayList<>();
+                        boolean hasCustomLore = false;
+                        
+                        // Przeszukaj lore, szukając linii konfiguracyjnych i niestandardowych
+                        for (String line : lore) {
+                            // Sprawdź, czy linia zawiera informacje o ilości lub szansie
+                            if (line.startsWith(ChatColor.GRAY + "Ilość: ")) {
+                                String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
+                                if (!valueStr.isEmpty()) {
+                                    amountStr = valueStr;
+                                }
+                            } else if (line.startsWith(ChatColor.GRAY + "Szansa: ")) {
+                                String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
+                                if (valueStr.endsWith("%")) {
+                                    valueStr = valueStr.substring(0, valueStr.length() - 1);
+                                }
+                                try {
+                                    chance = Double.parseDouble(valueStr) / 100.0;
+                                } catch (NumberFormatException ignored) {
+                                    if (debug()) {
+                                        Bukkit.getLogger().warning("[SMMetin] Nie można sparsować szansy: " + valueStr);
+                                    }
+                                }
+                            } else if (!line.equals("") && 
+                                      !line.startsWith(ChatColor.YELLOW + "Lewy klik: ") && 
+                                      !line.startsWith(ChatColor.YELLOW + "Prawy klik: ")) {
+                                // Zapisz niestandardowe linie lore, które nie są częścią interfejsu
+                                customLore.add(line);
+                                hasCustomLore = true;
+                            }
+                        }
+                        
+                        // Jeśli znaleziono niestandardowe lore, zapisz je
+                        if (hasCustomLore) {
+                            rewardMap.put("lore", customLore);
+                            if (debug()) {
+                                Bukkit.getLogger().info("[SMMetin] Zapisuję niestandardowe lore: " + customLore);
+                            }
+                        }
+                    } else {
+                        if (debug()) {
+                            Bukkit.getLogger().info("[SMMetin] Przedmiot bez lore, używam domyślnych wartości: amount=1-1, chance=1%");
+                        }
                     }
                 }
                 

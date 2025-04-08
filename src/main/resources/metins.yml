@@ -4,37 +4,43 @@ settings:
   respawn-time:
     min: 60 # Minimalny czas respawnu w minutach
     max: 120 # Maksymalny czas respawnu w minutach
-  lifetime: 3  # Czas życia Metina w minutach (2 godziny)
+  lifetime: 3 # Czas życia Metina w minutach (2 godziny)
   debug: true # Włącza/wyłącza wiadomości debugowania
-  hologram-offsets:  # Pozycje hologramów nad Metinem
-    name: 1.5  # Odległość hologramu z nazwą od górnego bloku Metina
-    health: 1.2  # Odległość hologramu z HP od górnego bloku Metina
+  hologram-offsets: # Pozycje hologramów nad Metinem
+    name: 1.5 # Odległość hologramu z nazwą od górnego bloku Metina
+    health: 1.2 # Odległość hologramu z HP od górnego bloku Metina
   knockback:
     chance: 0.2 # Szansa na odpychanie przy każdym uderzeniu (20%)
     strength: 1.5 # Siła odpychania
     cooldown: 40 # Cooldown w tickach (2 sekundy)
-  spawn-chances:  # Rozłożenie szans na spawn (musi sumować się do 1.0 czyli 100%) - jeśli brak, szanse są równe
-    default: true  # Jeśli true, szanse są równomiernie rozłożone między wszystkie typy Metinów (ignoruje poniższe ustawienia)
-    suffering_5: 0.15   # 15%
-    battle_10: 0.15     # 15%
-    war_15: 0.15        # 15%
-    greed_20: 0.14      # 14%
-    darkness_25: 0.12   # 12%
-    black_30: 0.10      # 10%
-    pain_35: 0.09       # 9%
-    soul_40: 0.06       # 6%
-    asylum_45: 0.04     # 4%
+  spawn-chances: # Rozłożenie szans na spawn (musi sumować się do 1.0 czyli 100%) - jeśli brak, szanse są równe
+    default: true # Jeśli true, szanse są równomiernie rozłożone między wszystkie typy Metinów (ignoruje poniższe ustawienia)
+    suffering_5: 0.15 # 15%
+    battle_10: 0.15 # 15%
+    war_15: 0.15 # 15%
+    greed_20: 0.14 # 14%
+    darkness_25: 0.12 # 12%
+    black_30: 0.1 # 10%
+    pain_35: 0.09 # 9%
+    soul_40: 0.06 # 6%
+    asylum_45: 0.04 # 4%
 
 metins:
   suffering_5:
-    display-name: "&6Metin Cierpienia &7[&fLV.5&7]"
-    health: 50 #bedzie mial 300
+    display-name: '&6Metin Cierpienia &7[&fLV.5&7]'
+    health: 50 # bedzie mial 300
     block-material: OAK_LOG
-    biomes: [FOREST, BIRCH_FOREST, DARK_FOREST]
+    biomes:
+    - FOREST
+    - BIRCH_FOREST
+    - DARK_FOREST
     knockback:
-      chance: 0.15  # 15% szansa
-      strength: 1.0  # Słabe odpychanie
-      cooldown: 60   # Długi cooldown (3 sekundy)
+      chance: 0.15 # 15% szansa
+      strength: 1.0 # Słabe odpychanie
+      cooldown: 60 # Długi cooldown (3 sekundy)
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: COMPOSTER
       count: 15
@@ -42,51 +48,150 @@ metins:
       speed: 0.1
       interval: 10
     mobs:
-      - type: ZOMBIE
-        chance: 0.4
-        amount: 1-2
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.2
-        amount: 1
-        spawn-radius: 3
+    - type: ZOMBIE
+      chance: 0.4
+      amount: 1-2
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.2
+      amount: 1
+      spawn-radius: 3
     rewards:
       items:
-        - material: IRON_INGOT
-          amount: "3-6"
-          chance: 1.0
-        - material: COAL
-          amount: "5-8"
-          chance: 0.8
-        - material: GOLDEN_APPLE
-          amount: "1"
-          chance: 0.3
-        - material: IRON_SWORD
-          amount: "1"
-          chance: 0.25
-      money: "100-200"
-      experience: "10-25"
+      - amount: '3'
+        chance: 1.0
+        material: IRON_INGOT
+      - amount: 5-8
+        chance: 0.8
+        material: COAL
+      - amount: '1'
+        chance: 0.3
+        material: GOLDEN_APPLE
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_SWORD
+        enchantments:
+          sharpness: 1
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_BOOTS
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_LEGGINGS
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_CHESTPLATE
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_HELMET
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_PICKAXE
+        enchantments:
+          efficiency: 1
+          unbreaking: 1
+      - amount: 1-1
+        chance: 0.01
+        material: GOLD_BLOCK
+      - amount: '4'
+        chance: 0.0
+        material: GOLD_INGOT
+      - amount: 1-1
+        chance: 0.01
+        material: SHIELD
+      - amount: 1-1
+        chance: 0.01
+        material: NAME_TAG
+      - amount: '2'
+        chance: 0.01
+        material: GOLDEN_APPLE
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_BLOCK
+      - amount: '8'
+        chance: 0.01
+        material: IRON_INGOT
+      - amount: '4'
+        chance: 0.01
+        material: FIREWORK_ROCKET
+      - amount: 1-1
+        chance: 0.01
+        material: TRIPWIRE_HOOK
+        lore:
+        - §7Ten klucz otwiera §fŻelazną Skrzynię§7.
+        - §7Może zawierać podstawowe nagrody.
+        - §l
+        - §f(Rozsądna inwestycja!)
+        name: §f§l🔑 §f§lŻelazny Klucz
+      - amount: 1-1
+        chance: 0.01
+        material: WHITE_DYE
+        lore:
+        - §7Rzadki i cenny klejnot o głębokiej czerwonej barwie
+        - §7Emanuje starożytną mocą zdolną kruszyć skały
+        - §8» §7Używany do tworzenia §c§lRubinowego §7ekwipunku
+        name: §c§lRubin
+      - amount: 1-1
+        chance: 0.01
+        material: BROWN_DYE
+        lore:
+        - §7Tajemniczy materiał pochodzący z kosmosu
+        - §7Jego struktura przypomina zastygłą lawę
+        - §8» §7Używany do tworzenia §6§lMeteorytowego §7ekwipunku
+        name: §6§lMeteoryt
+      - amount: 1-1
+        chance: 0.01
+        material: IRON_NUGGET
+        lore:
+        - §7Niezwykle rzadki i wartościowy metal szlachetny
+        - §7Jego czystość przekracza wszelkie standardy
+        - §8» §7Używany do tworzenia §b§lPlatynowego §7ekwipunku
+        name: §b§lPlatyna
+      - amount: '1'
+        chance: 0.0
+        material: BEDROCK
+        lore:
+        - §7Najtwardszy materiał znany w Minecraft
+        - §7Legenda głosi, że pochodzi z samego dna świata
+        - §8» §7Używany do tworzenia §8§lBedrockowego §7ekwipunku
+        name: §8§lBedrock
+      - amount: 1-1
+        chance: 0.01
+        material: NETHER_BRICK
+        lore:
+        - §7Mistyczny materiał z głębin Netheru
+        - §7Pulsuje tajemniczą mocą piekielnych krain
+        - §8» §7Używany do stworzenia §6§lNetheriańskiego Kilofa
+        name: §6§lNetherium
+      money: 5-10
+      experience: 5-15
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: RED_DYE
-      name: "&6Odłamek Metina Cierpienia"
+      name: '&6Odłamek Metina Cierpienia'
       lore:
-        - "&7Trofeum za pokonanie Metina Cierpienia."
-        - "&8Odłamek emanuje subtelnym ciepłem i energią."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Cierpienia.'
+      - '&8Odłamek emanuje subtelnym ciepłem i energią.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   battle_10:
-    display-name: "&6Metin Walki &7[&fLV.10&7]"
-    health: 50 #bedzie mial 400
+    display-name: '&6Metin Walki &7[&fLV.10&7]'
+    health: 50 # bedzie mial 400
     block-material: DARK_OAK_LOG
-    biomes: [FOREST, BIRCH_FOREST, DARK_FOREST]
+    biomes:
+    - FOREST
+    - BIRCH_FOREST
+    - DARK_FOREST
     knockback:
-      chance: 0.2   # 20% szansa
-      strength: 1.2  # Średnie odpychanie
-      cooldown: 50   # 2.5 sekundy cooldown
+      chance: 0.2 # 20% szansa
+      strength: 1.2 # Średnie odpychanie
+      cooldown: 50 # 2.5 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: FLAME
       count: 18
@@ -94,58 +199,63 @@ metins:
       speed: 0.12
       interval: 8
     mobs:
-      - type: ZOMBIE
-        chance: 0.5
-        amount: 2-3
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.3
-        amount: 1-2
-        spawn-radius: 4
-      - type: SPIDER
-        chance: 0.2
-        amount: 1
-        spawn-radius: 3
+    - type: ZOMBIE
+      chance: 0.5
+      amount: 2-3
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.3
+      amount: 1-2
+      spawn-radius: 4
+    - type: SPIDER
+      chance: 0.2
+      amount: 1
+      spawn-radius: 3
     rewards:
       items:
-        - material: IRON_INGOT
-          amount: "5-10"
-          chance: 1.0
-        - material: GOLD_INGOT
-          amount: "2-4"
-          chance: 0.7
-        - material: IRON_HELMET
-          amount: "1"
-          chance: 0.4
-        - material: IRON_PICKAXE
-          amount: "1"
-          chance: 0.35
-        - material: GOLDEN_APPLE
-          amount: "1-2"
-          chance: 0.25
-      money: "20-35"
-      experience: "300-500"
+      - amount: 5-10
+        chance: 1.0
+        material: IRON_INGOT
+      - amount: 2-4
+        chance: 0.7
+        material: GOLD_INGOT
+      - amount: '1'
+        chance: 0.4
+        material: IRON_HELMET
+      - amount: '1'
+        chance: 0.35
+        material: IRON_PICKAXE
+      - amount: 1-2
+        chance: 0.25
+        material: GOLDEN_APPLE
+      money: 10-20
+      experience: 15-30
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: GRAY_DYE
-      name: "&6Odłamek Metina Walki"
+      name: '&6Odłamek Metina Walki'
       lore:
-        - "&7Trofeum za pokonanie Metina Walki."
-        - "&8Odłamek wibruje delikatnie w dłoni, jakby chciał walczyć."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Walki.'
+      - '&8Odłamek wibruje delikatnie w dłoni, jakby chciał walczyć.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   war_15:
-    display-name: "&7Metin Bitwy &7[&fLV.15&7]"
-    health: 50 #bedzie mial 500
+    display-name: '&7Metin Bitwy &7[&fLV.15&7]'
+    health: 50 # bedzie mial 500
     block-material: STONE
-    biomes: [PLAINS, SUNFLOWER_PLAINS]
+    biomes:
+    - PLAINS
+    - SUNFLOWER_PLAINS
     knockback:
-      chance: 0.25  # 25% szansa
-      strength: 1.4  # Mocniejsze odpychanie
-      cooldown: 40   # 2 sekundy cooldown
+      chance: 0.25 # 25% szansa
+      strength: 1.4 # Mocniejsze odpychanie
+      cooldown: 40 # 2 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: CLOUD
       count: 20
@@ -153,61 +263,66 @@ metins:
       speed: 0.15
       interval: 8
     mobs:
-      - type: ZOMBIE
-        chance: 0.6
-        amount: 2-4
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.4
-        amount: 2-3
-        spawn-radius: 4
-      - type: SPIDER
-        chance: 0.3
-        amount: 1-2
-        spawn-radius: 3
+    - type: ZOMBIE
+      chance: 0.6
+      amount: 2-4
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.4
+      amount: 2-3
+      spawn-radius: 4
+    - type: SPIDER
+      chance: 0.3
+      amount: 1-2
+      spawn-radius: 3
     rewards:
       items:
-        - material: GOLD_INGOT
-          amount: "6-10"
-          chance: 1.0
-        - material: IRON_INGOT
-          amount: "8-12"
-          chance: 0.9
-        - material: DIAMOND
-          amount: "1-2"
-          chance: 0.5
-        - material: IRON_CHESTPLATE
-          amount: "1"
-          chance: 0.4
-        - material: IRON_LEGGINGS
-          amount: "1"
-          chance: 0.35
-        - material: GOLDEN_APPLE
-          amount: "2"
-          chance: 0.3
-      money: "35-60"
-      experience: "500-750"
+      - amount: 6-10
+        chance: 1.0
+        material: GOLD_INGOT
+      - amount: 8-12
+        chance: 0.9
+        material: IRON_INGOT
+      - amount: 1-2
+        chance: 0.5
+        material: DIAMOND
+      - amount: '1'
+        chance: 0.4
+        material: IRON_CHESTPLATE
+      - amount: '1'
+        chance: 0.35
+        material: IRON_LEGGINGS
+      - amount: '2'
+        chance: 0.3
+        material: GOLDEN_APPLE
+      money: 20-35
+      experience: 30-50
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: GRAY_DYE
-      name: "&7Odłamek Metina Bitwy"
+      name: '&7Odłamek Metina Bitwy'
       lore:
-        - "&7Trofeum za pokonanie Metina Bitwy."
-        - "&8Odłamek kryje w sobie wspomnienia wielu bitew."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Bitwy.'
+      - '&8Odłamek kryje w sobie wspomnienia wielu bitew.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   greed_20:
-    display-name: "&7Metin Chciwości &7[&fLV.20&7]"
-    health: 50 #bedzie mial 650
+    display-name: '&7Metin Chciwości &7[&fLV.20&7]'
+    health: 50 # bedzie mial 650
     block-material: COBBLESTONE
-    biomes: [PLAINS, SUNFLOWER_PLAINS]
+    biomes:
+    - PLAINS
+    - SUNFLOWER_PLAINS
     knockback:
-      chance: 0.3   # 30% szansa
-      strength: 1.6  # Silne odpychanie
-      cooldown: 35   # 1.75 sekundy cooldown
+      chance: 0.3 # 30% szansa
+      strength: 1.6 # Silne odpychanie
+      cooldown: 35 # 1.75 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: SPELL_WITCH
       count: 22
@@ -215,64 +330,69 @@ metins:
       speed: 0.17
       interval: 7
     mobs:
-      - type: ZOMBIE
-        chance: 0.7
-        amount: 3-5
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.5
-        amount: 2-3
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.3
-        amount: 1
-        spawn-radius: 5
+    - type: ZOMBIE
+      chance: 0.7
+      amount: 3-5
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.5
+      amount: 2-3
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.3
+      amount: 1
+      spawn-radius: 5
     rewards:
       items:
-        - material: DIAMOND
-          amount: "2-4"
-          chance: 1.0
-        - material: GOLD_INGOT
-          amount: "8-12"
-          chance: 0.8
-        - material: IRON_BLOCK
-          amount: "2-4"
-          chance: 0.7
-        - material: DIAMOND_PICKAXE
-          amount: "1"
-          chance: 0.4
-        - material: IRON_BOOTS
-          amount: "1"
-          chance: 0.35
-        - material: ENCHANTED_BOOK
-          amount: "1"
-          chance: 0.3
-        - material: GOLDEN_APPLE
-          amount: "2-3"
-          chance: 0.25
-      money: "60-100"
-      experience: "1000-1500"
+      - material: DIAMOND
+        amount: 2-4
+        chance: 1.0
+      - material: GOLD_INGOT
+        amount: 8-12
+        chance: 0.8
+      - material: IRON_BLOCK
+        amount: 2-4
+        chance: 0.7
+      - material: DIAMOND_PICKAXE
+        amount: '1'
+        chance: 0.4
+      - material: IRON_BOOTS
+        amount: '1'
+        chance: 0.35
+      - material: ENCHANTED_BOOK
+        amount: '1'
+        chance: 0.3
+      - material: GOLDEN_APPLE
+        amount: 2-3
+        chance: 0.25
+      money: 35-50
+      experience: 50-75
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: YELLOW_DYE
-      name: "&7Odłamek Metina Chciwości"
+      name: '&7Odłamek Metina Chciwości'
       lore:
-        - "&7Trofeum za pokonanie Metina Chciwości."
-        - "&8Odłamek przyciąga spojrzenia, budząc chciwość w sercach."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Chciwości.'
+      - '&8Odłamek przyciąga spojrzenia, budząc chciwość w sercach.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   darkness_25:
-    display-name: "&8Metin Czerni &7[&fLV.25&7]"
-    health: 50 #bedzie mial 900
+    display-name: '&8Metin Czerni &7[&fLV.25&7]'
+    health: 50 # bedzie mial 900
     block-material: MOSSY_COBBLESTONE
-    biomes: [PLAINS, SUNFLOWER_PLAINS]
+    biomes:
+    - PLAINS
+    - SUNFLOWER_PLAINS
     knockback:
-      chance: 0.35  # 35% szansa
-      strength: 1.8  # Bardzo silne odpychanie
-      cooldown: 30   # 1.5 sekundy cooldown
+      chance: 0.35 # 35% szansa
+      strength: 1.8 # Bardzo silne odpychanie
+      cooldown: 30 # 1.5 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: SMOKE_NORMAL
       count: 25
@@ -280,68 +400,74 @@ metins:
       speed: 0.2
       interval: 6
     mobs:
-      - type: ZOMBIE
-        chance: 0.8
-        amount: 3-5
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.6
-        amount: 2-4
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.4
-        amount: 1-2
-        spawn-radius: 5
-      - type: WITCH
-        chance: 0.2
-        amount: 1
-        spawn-radius: 6
+    - type: ZOMBIE
+      chance: 0.8
+      amount: 3-5
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.6
+      amount: 2-4
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.4
+      amount: 1-2
+      spawn-radius: 5
+    - type: WITCH
+      chance: 0.2
+      amount: 1
+      spawn-radius: 6
     rewards:
       items:
-        - material: DIAMOND
-          amount: "3-6"
-          chance: 1.0
-        - material: GOLD_BLOCK
-          amount: "1-3"
-          chance: 0.7
-        - material: EMERALD
-          amount: "2-4"
-          chance: 0.6
-        - material: DIAMOND_SWORD
-          amount: "1"
-          chance: 0.4
-        - material: DIAMOND_HELMET
-          amount: "1"
-          chance: 0.35
-        - material: ENCHANTED_BOOK
-          amount: "1"
-          chance: 0.5
-        - material: GOLDEN_APPLE
-          amount: "3-4"
-          chance: 0.35
-      money: "100-150"
-      experience: "1500-2000"
+      - material: DIAMOND
+        amount: 3-6
+        chance: 1.0
+      - material: GOLD_BLOCK
+        amount: 1-3
+        chance: 0.7
+      - material: EMERALD
+        amount: 2-4
+        chance: 0.6
+      - material: DIAMOND_SWORD
+        amount: '1'
+        chance: 0.4
+      - material: DIAMOND_HELMET
+        amount: '1'
+        chance: 0.35
+      - material: ENCHANTED_BOOK
+        amount: '1'
+        chance: 0.5
+      - material: GOLDEN_APPLE
+        amount: 3-4
+        chance: 0.35
+      money: 50-70
+      experience: 75-100
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: BLACK_DYE
-      name: "&8Odłamek Metina Czerni"
+      name: '&8Odłamek Metina Czerni'
       lore:
-        - "&7Trofeum za pokonanie Metina Czerni."
-        - "&8Odłamek pochłania światło, pozostawiając ciemność."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Czerni.'
+      - '&8Odłamek pochłania światło, pozostawiając ciemność.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   black_30:
-    display-name: "&8Metin Ciemności &7[&fLV.30&7]"
-    health: 50 #bedzie mial 1300
+    display-name: '&8Metin Ciemności &7[&fLV.30&7]'
+    health: 50 # bedzie mial 1300
     block-material: BLACKSTONE
-    biomes: [PLAINS, SUNFLOWER_PLAINS, MOUNTAINS]
+    biomes:
+    - PLAINS
+    - SUNFLOWER_PLAINS
+    - MOUNTAINS
     knockback:
-      chance: 0.4   # 40% szansa
-      strength: 2.0  # Ekstremalne odpychanie
-      cooldown: 25   # 1.25 sekundy cooldown
+      chance: 0.4 # 40% szansa
+      strength: 2.0 # Ekstremalne odpychanie
+      cooldown: 25 # 1.25 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: SMOKE_LARGE
       count: 28
@@ -349,72 +475,78 @@ metins:
       speed: 0.22
       interval: 5
     mobs:
-      - type: ZOMBIE
-        chance: 0.8
-        amount: 4-6
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.7
-        amount: 3-5
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.5
-        amount: 1-2
-        spawn-radius: 5
-      - type: WITCH
-        chance: 0.3
-        amount: 1
-        spawn-radius: 6
-      - type: ENDERMAN
-        chance: 0.15
-        amount: 1
-        spawn-radius: 4
+    - type: ZOMBIE
+      chance: 0.8
+      amount: 4-6
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.7
+      amount: 3-5
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.5
+      amount: 1-2
+      spawn-radius: 5
+    - type: WITCH
+      chance: 0.3
+      amount: 1
+      spawn-radius: 6
+    - type: ENDERMAN
+      chance: 0.15
+      amount: 1
+      spawn-radius: 4
     rewards:
       items:
-        - material: DIAMOND
-          amount: "5-8"
-          chance: 1.0
-        - material: EMERALD
-          amount: "3-6"
-          chance: 0.8
-        - material: DIAMOND_BLOCK
-          amount: "1"
-          chance: 0.5
-        - material: NETHERITE_SCRAP
-          amount: "1-2"
-          chance: 0.4
-        - material: DIAMOND_CHESTPLATE
-          amount: "1"
-          chance: 0.4
-        - material: ENCHANTED_BOOK
-          amount: "2"
-          chance: 0.6
-        - material: ENCHANTED_GOLDEN_APPLE
-          amount: "1"
-          chance: 0.15
-      money: "150-250"
-      experience: "2000-3000"
+      - material: DIAMOND
+        amount: 5-8
+        chance: 1.0
+      - material: EMERALD
+        amount: 3-6
+        chance: 0.8
+      - material: DIAMOND_BLOCK
+        amount: '1'
+        chance: 0.5
+      - material: NETHERITE_SCRAP
+        amount: 1-2
+        chance: 0.4
+      - material: DIAMOND_CHESTPLATE
+        amount: '1'
+        chance: 0.4
+      - material: ENCHANTED_BOOK
+        amount: '2'
+        chance: 0.6
+      - material: ENCHANTED_GOLDEN_APPLE
+        amount: '1'
+        chance: 0.15
+      money: 70-100
+      experience: 100-150
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: BLACK_DYE
-      name: "&8Odłamek Metina Ciemności"
+      name: '&8Odłamek Metina Ciemności'
       lore:
-        - "&7Trofeum za pokonanie Metina Ciemności."
-        - "&8Odłamek zdaje się być bramą do innego wymiaru."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Ciemności.'
+      - '&8Odłamek zdaje się być bramą do innego wymiaru.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   pain_35:
-    display-name: "&8Metin Cierpienia &7[&fLV.35&7]"
-    health: 50 #bedzie mial 1800
+    display-name: '&8Metin Cierpienia &7[&fLV.35&7]'
+    health: 50 # bedzie mial 1800
     block-material: OBSIDIAN
-    biomes: [MOUNTAINS, MOUNTAIN_EDGE, GRAVELLY_MOUNTAINS]
+    biomes:
+    - MOUNTAINS
+    - MOUNTAIN_EDGE
+    - GRAVELLY_MOUNTAINS
     knockback:
-      chance: 0.45  # 45% szansa
-      strength: 2.2  # Potężne odpychanie
-      cooldown: 20   # 1 sekunda cooldown
+      chance: 0.45 # 45% szansa
+      strength: 2.2 # Potężne odpychanie
+      cooldown: 20 # 1 sekunda cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: DRAGON_BREATH
       count: 30
@@ -422,79 +554,86 @@ metins:
       speed: 0.25
       interval: 5
     mobs:
-      - type: ZOMBIE
-        chance: 0.9
-        amount: 4-6
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.8
-        amount: 3-5
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.6
-        amount: 2-3
-        spawn-radius: 5
-      - type: WITCH
-        chance: 0.4
-        amount: 1-2
-        spawn-radius: 6
-      - type: ENDERMAN
-        chance: 0.25
-        amount: 1
-        spawn-radius: 4
-      - type: BLAZE
-        chance: 0.15
-        amount: 1
-        spawn-radius: 7
+    - type: ZOMBIE
+      chance: 0.9
+      amount: 4-6
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.8
+      amount: 3-5
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.6
+      amount: 2-3
+      spawn-radius: 5
+    - type: WITCH
+      chance: 0.4
+      amount: 1-2
+      spawn-radius: 6
+    - type: ENDERMAN
+      chance: 0.25
+      amount: 1
+      spawn-radius: 4
+    - type: BLAZE
+      chance: 0.15
+      amount: 1
+      spawn-radius: 7
     rewards:
       items:
-        - material: DIAMOND
-          amount: "8-12"
-          chance: 1.0
-        - material: EMERALD
-          amount: "6-10"
-          chance: 0.8
-        - material: DIAMOND_BLOCK
-          amount: "1-2"
-          chance: 0.6
-        - material: NETHERITE_SCRAP
-          amount: "2-3"
-          chance: 0.5
-        - material: DIAMOND_LEGGINGS
-          amount: "1"
-          chance: 0.4
-        - material: ENCHANTED_BOOK
-          amount: "2"
-          chance: 0.7
-        - material: ENCHANTED_GOLDEN_APPLE
-          amount: "1"
-          chance: 0.2
-        - material: TOTEM_OF_UNDYING
-          amount: "1"
-          chance: 0.15
-      money: "250-350"
-      experience: "3000-4000"
+      - material: DIAMOND
+        amount: 8-12
+        chance: 1.0
+      - material: EMERALD
+        amount: 6-10
+        chance: 0.8
+      - material: DIAMOND_BLOCK
+        amount: 1-2
+        chance: 0.6
+      - material: NETHERITE_SCRAP
+        amount: 2-3
+        chance: 0.5
+      - material: DIAMOND_LEGGINGS
+        amount: '1'
+        chance: 0.4
+      - material: ENCHANTED_BOOK
+        amount: '2'
+        chance: 0.7
+      - material: ENCHANTED_GOLDEN_APPLE
+        amount: '1'
+        chance: 0.2
+      - material: TOTEM_OF_UNDYING
+        amount: '1'
+        chance: 0.15
+      money: 100-150
+      experience: 150-200
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: RED_DYE
-      name: "&8Odłamek Metina Bólu"
+      name: '&8Odłamek Metina Bólu'
       lore:
-        - "&7Trofeum za pokonanie Metina Bólu."
-        - "&8Odłamek pulsuje jak żywa istota odczuwająca ból."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Bólu.'
+      - '&8Odłamek pulsuje jak żywa istota odczuwająca ból.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   soul_40:
-    display-name: "&5Metin Duszy &7[&fLV.40&7]"
-    health: 50 #bedzie mial 2500
+    display-name: '&5Metin Duszy &7[&fLV.40&7]'
+    health: 50 # bedzie mial 2500
     block-material: CRYING_OBSIDIAN
-    biomes: [DESERT, DESERT_HILLS, JUNGLE, JUNGLE_HILLS]
+    biomes:
+    - DESERT
+    - DESERT_HILLS
+    - JUNGLE
+    - JUNGLE_HILLS
     knockback:
-      chance: 0.5   # 50% szansa
-      strength: 2.4  # Niszczycielskie odpychanie
-      cooldown: 15   # 0.75 sekundy cooldown
+      chance: 0.5 # 50% szansa
+      strength: 2.4 # Niszczycielskie odpychanie
+      cooldown: 15 # 0.75 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: SOUL_FIRE_FLAME
       count: 32
@@ -502,83 +641,89 @@ metins:
       speed: 0.27
       interval: 4
     mobs:
-      - type: ZOMBIE
-        chance: 0.9
-        amount: 5-7
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.8
-        amount: 4-6
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.7
-        amount: 2-3
-        spawn-radius: 5
-      - type: WITCH
-        chance: 0.5
-        amount: 1-2
-        spawn-radius: 6
-      - type: ENDERMAN
-        chance: 0.3
-        amount: 1-2
-        spawn-radius: 4
-      - type: BLAZE
-        chance: 0.2
-        amount: 1-2
-        spawn-radius: 7
-      - type: PHANTOM
-        chance: 0.15
-        amount: 2-3
-        spawn-radius: 8
+    - type: ZOMBIE
+      chance: 0.9
+      amount: 5-7
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.8
+      amount: 4-6
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.7
+      amount: 2-3
+      spawn-radius: 5
+    - type: WITCH
+      chance: 0.5
+      amount: 1-2
+      spawn-radius: 6
+    - type: ENDERMAN
+      chance: 0.3
+      amount: 1-2
+      spawn-radius: 4
+    - type: BLAZE
+      chance: 0.2
+      amount: 1-2
+      spawn-radius: 7
+    - type: PHANTOM
+      chance: 0.15
+      amount: 2-3
+      spawn-radius: 8
     rewards:
       items:
-        - material: DIAMOND_BLOCK
-          amount: "2-3"
-          chance: 1.0
-        - material: EMERALD_BLOCK
-          amount: "1-2"
-          chance: 0.7
-        - material: NETHERITE_SCRAP
-          amount: "3-5"
-          chance: 0.6
-        - material: DIAMOND_BOOTS
-          amount: "1"
-          chance: 0.5
-        - material: ENCHANTED_BOOK
-          amount: "3"
-          chance: 0.8
-        - material: ENCHANTED_GOLDEN_APPLE
-          amount: "1-2"
-          chance: 0.3
-        - material: TOTEM_OF_UNDYING
-          amount: "1"
-          chance: 0.25
-        - material: NETHERITE_INGOT
-          amount: "1"
-          chance: 0.2
-      money: "350-500"
-      experience: "4000-5500"
+      - material: DIAMOND_BLOCK
+        amount: 2-3
+        chance: 1.0
+      - material: EMERALD_BLOCK
+        amount: 1-2
+        chance: 0.7
+      - material: NETHERITE_SCRAP
+        amount: 3-5
+        chance: 0.6
+      - material: DIAMOND_BOOTS
+        amount: '1'
+        chance: 0.5
+      - material: ENCHANTED_BOOK
+        amount: '3'
+        chance: 0.8
+      - material: ENCHANTED_GOLDEN_APPLE
+        amount: 1-2
+        chance: 0.3
+      - material: TOTEM_OF_UNDYING
+        amount: '1'
+        chance: 0.25
+      - material: NETHERITE_INGOT
+        amount: '1'
+        chance: 0.2
+      money: 150-200
+      experience: 200-300
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: PURPLE_DYE
-      name: "&5Odłamek Metina Duszy"
+      name: '&5Odłamek Metina Duszy'
       lore:
-        - "&7Trofeum za pokonanie Metina Duszy."
-        - "&8Odłamek szepcze tajemnice zaświatów."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
-
+      - '&7Trofeum za pokonanie Metina Duszy.'
+      - '&8Odłamek szepcze tajemnice zaświatów.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
+  
   asylum_45:
-    display-name: "&bMetin Azylu &7[&fLV.45&7]"
-    health: 50 #bedzie mial 3200
+    display-name: '&bMetin Azylu &7[&fLV.45&7]'
+    health: 50 # bedzie mial 3200
     block-material: BLUE_GLAZED_TERRACOTTA
-    biomes: [SNOWY_TUNDRA, SNOWY_MOUNTAINS, FROZEN_OCEAN]
+    biomes:
+    - SNOWY_TUNDRA
+    - SNOWY_MOUNTAINS
+    - FROZEN_OCEAN
     knockback:
-      chance: 0.6   # 60% szansa
-      strength: 2.6  # Maksymalne odpychanie
-      cooldown: 10   # 0.5 sekundy cooldown
+      chance: 0.6 # 60% szansa
+      strength: 2.6 # Maksymalne odpychanie
+      cooldown: 10 # 0.5 sekundy cooldown
+    lava:
+      enabled: true
+      chance: 0.02 # 2% szansa na stworzenie lawy
     particles:
       type: SNOWFLAKE
       count: 35
@@ -586,102 +731,108 @@ metins:
       speed: 0.3
       interval: 4
     mobs:
-      - type: ZOMBIE
-        chance: 1.0
-        amount: 6-8
-        spawn-radius: 3
-      - type: SKELETON
-        chance: 0.9
-        amount: 5-7
-        spawn-radius: 4
-      - type: CREEPER
-        chance: 0.8
-        amount: 3-4
-        spawn-radius: 5
-      - type: WITCH
-        chance: 0.6
-        amount: 2-3
-        spawn-radius: 6
-      - type: ENDERMAN
-        chance: 0.4
-        amount: 1-2
-        spawn-radius: 4
-      - type: BLAZE
-        chance: 0.3
-        amount: 2-3
-        spawn-radius: 7
-      - type: PHANTOM
-        chance: 0.25
-        amount: 3-5
-        spawn-radius: 8
-      - type: WITHER_SKELETON
-        chance: 0.15
-        amount: 1-2
-        spawn-radius: 5
+    - type: ZOMBIE
+      chance: 1.0
+      amount: 6-8
+      spawn-radius: 3
+    - type: SKELETON
+      chance: 0.9
+      amount: 5-7
+      spawn-radius: 4
+    - type: CREEPER
+      chance: 0.8
+      amount: 3-4
+      spawn-radius: 5
+    - type: WITCH
+      chance: 0.6
+      amount: 2-3
+      spawn-radius: 6
+    - type: ENDERMAN
+      chance: 0.4
+      amount: 1-2
+      spawn-radius: 4
+    - type: BLAZE
+      chance: 0.3
+      amount: 2-3
+      spawn-radius: 7
+    - type: PHANTOM
+      chance: 0.25
+      amount: 3-5
+      spawn-radius: 8
+    - type: WITHER_SKELETON
+      chance: 0.15
+      amount: 1-2
+      spawn-radius: 5
     rewards:
       items:
-        - material: DIAMOND_BLOCK
-          amount: "3-5"
-          chance: 1.0
-        - material: EMERALD_BLOCK
-          amount: "2-3"
-          chance: 0.9
-        - material: NETHERITE_INGOT
-          amount: "1-2"
-          chance: 0.6
-        - material: NETHERITE_SCRAP
-          amount: "4-8"
-          chance: 0.8
-        - material: ENCHANTED_BOOK
-          amount: "3-4"
-          chance: 0.9
-        - material: ENCHANTED_GOLDEN_APPLE
-          amount: "2-3"
-          chance: 0.4
-        - material: TOTEM_OF_UNDYING
-          amount: "1-2"
-          chance: 0.3
-        - material: DRAGON_EGG
-          amount: "1"
-          chance: 0.05
-        - material: ELYTRA
-          amount: "1"
-          chance: 0.1
-        - material: SHULKER_BOX
-          amount: "1"
-          chance: 0.25
-      money: "500-800"
-      experience: "5500-8000"
+      - amount: 3-5
+        chance: 1.0
+        material: DIAMOND_BLOCK
+      - amount: 2-3
+        chance: 0.9
+        material: EMERALD_BLOCK
+      - amount: 1-2
+        chance: 0.6
+        material: NETHERITE_INGOT
+      - amount: 4-8
+        chance: 0.8
+        material: NETHERITE_SCRAP
+      - amount: 3-4
+        chance: 0.9
+        material: ENCHANTED_BOOK
+      - amount: 2-3
+        chance: 0.4
+        material: ENCHANTED_GOLDEN_APPLE
+      - amount: 1-2
+        chance: 0.3
+        material: TOTEM_OF_UNDYING
+      - amount: '1'
+        chance: 0.05
+        material: DRAGON_EGG
+      - amount: '1'
+        chance: 0.1
+        material: ELYTRA
+      - amount: '1'
+        chance: 0.25
+        material: SHULKER_BOX
+      money: 200-300
+      experience: 300-450
     trophy:
       enabled: true
-      chance: 0.2  # 20% szansa na wypadnięcie trofeum
+      chance: 0.2 # 20% szansa na wypadnięcie trofeum
       material: LIGHT_BLUE_DYE
-      name: "&bOdłamek Metina Azylu"
+      name: '&bOdłamek Metina Azylu'
       lore:
-        - "&7Trofeum za pokonanie Metina Azylu."
-        - "&8Odłamek emanuje spokojem i bezpieczeństwem."
-        - ""
-        - "&eWartość kolekcjonerska"
-        - "&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}"
+      - '&7Trofeum za pokonanie Metina Azylu.'
+      - '&8Odłamek emanuje spokojem i bezpieczeństwem.'
+      - ''
+      - '&eWartość kolekcjonerska'
+      - '&7Pokonany dnia &f{date} &7na kordach &fx: {x} z: {z}'
 
 messages:
-  metin-spawn: "&aMetin pojawił się na koordynatach: &e{x}, {y}, {z}"
-  metin-teleport: "&aPrzeteleportowano do Metina: &e{name} &7[&f{x}, {y}, {z}&7]"
-  metin-remove: "&cUsunięto Metina: &e{name}"
-  metin-create: "&aUtworzono nowego Metina: &e{name}"
-  metin-hit: "&7Zadałeś &e{damage} &7obrażeń Metinowi &e{name} &7(&c{health}&7/&c{max_health}&7)"
-  metin-disappeared: "&7Metin &e{name} &7zniknął po upływie czasu życia!"
-  metin-destroy: "&aMetin &e{name} &azostał zniszczony!"
-  participants: "&7Lista uczestników zniszczenia &e{name}&7:"
-  participant-entry: "&7- &e{player} &7(&a{damage}% &7obrażeń)"
-  all-metins-removed: "&aWszystkie Metiny zostały usunięte!"
-  teleported-to-metin: "&aPrzeteleportowano do Metina &e{name}"
-  metin-not-found: "&cNie znaleziono Metina o ID: &e{id}"
-  money-reward: "&aOtrzymałeś &e{amount} {currency} &aza zniszczenie Metina!"
-  exp-reward: "&aOtrzymałeś &e{amount} EXP &aza zniszczenie Metina!"
-  items-reward: "&aOtrzymałeś przedmioty: {items}"
-  damage-percentage: "&7Zadałeś &e{percentage}% &7obrażeń Metinowi &e{metin_name}&7 (miejsce: &e{position}&7)"
-  reward-chance: "&7Ze względu na swoją pozycję ({position}) masz &e{chance}% &7szansy na otrzymanie nagrody"
-  no-reward: "&cNie otrzymujesz nagrody - zbyt mały udział w zniszczeniu Metina"
-  trophy-dropped: "&aMetin pozostawił po sobie trofeum! &e{name}"
-  top-damager: "&7Gracz &e{player} &7zadał najwięcej obrażeń Metinowi &e{metin_name} &7i otrzymuje najlepsze nagrody!" 
+  metin-spawn: '&aMetin pojawił się na koordynatach: &e{x}, {y}, {z}'
+  metin-teleport: '&aPrzeteleportowano do Metina: &e{name} &7[&f{x}, {y}, {z}&7]'
+  metin-remove: '&cUsunięto Metina: &e{name}'
+  metin-create: '&aUtworzono nowego Metina: &e{name}'
+  metin-hit: '&7Zadałeś &e{damage} &7obrażeń Metinowi &e{name} &7(&c{health}&7/&c{max_health}&7)'
+  metin-disappeared: '&7Metin &e{name} &7zniknął po upływie czasu życia!'
+  metin-destroy: '&c&lMetin &e&l{name} &c&lzostał zgładzony'
+  metin-destroy-header: '&e&lRanking obrażeń:'
+  metin-destroy-entry: '&7{position}. &f{player} &7{percentage}% &eNagrody: {rewards} &7XP: &a{exp} &7oraz &6{money}$'
+  metin-trophy-drop: '&e&lMetin ten wydropił trofeum!'
+  participants: '&7Lista uczestników zniszczenia &e{name}&7:'
+  participant-entry: '&7- &e{player} &7(&a{damage}% &7obrażeń)'
+  all-metins-removed: '&aWszystkie Metiny zostały usunięte!'
+  teleported-to-metin: '&aPrzeteleportowano do Metina &e{name}'
+  metin-not-found: '&cNie znaleziono Metina o ID: &e{id}'
+  money-reward: '&aOtrzymałeś &e{amount} {currency} &aza zniszczenie Metina!'
+  exp-reward: '&aOtrzymałeś &e{amount} EXP &aza zniszczenie Metina!'
+  items-reward: '&aOtrzymałeś przedmioty: {items}'
+  damage-percentage: '&7Zadałeś &e{percentage}% &7obrażeń Metinowi &e{metin_name}&7
+    (miejsce: &e{position}&7)'
+  reward-chance: '&7Ze względu na swoją pozycję ({position}) masz &e{chance}% &7szansy
+    na otrzymanie nagrody'
+  no-reward: '&cNie otrzymujesz nagrody - zbyt mały udział w zniszczeniu Metina'
+  trophy-dropped: '&aMetin pozostawił po sobie trofeum! &e{name}'
+  top-damager: '&7Gracz &e{player} &7zadał najwięcej obrażeń Metinowi &e{metin_name}
+    &7i otrzymuje najlepsze nagrody!'

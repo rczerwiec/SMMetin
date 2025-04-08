@@ -13,12 +13,15 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.enchantments.Enchantment;
 import pl.stylowamc.smmetin.Smmetin;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RewardsGUI implements Listener {
     private final Smmetin plugin;
@@ -220,15 +223,6 @@ public class RewardsGUI implements Listener {
                                     lore.add(ChatColor.translateAlternateColorCodes('&', line));
                                 }
                             }
-                            
-                            if (debug()) {
-                                Bukkit.getLogger().info("[SMMetin] Dodano niestandardowe lore: " + loreObj);
-                            }
-                            
-                            // Dodaj pustą linię po niestandardowym lore
-                            if (!lore.isEmpty()) {
-                                lore.add("");
-                            }
                         }
                         
                         // Dodaj informacje o ilości i szansie
@@ -237,9 +231,51 @@ public class RewardsGUI implements Listener {
                         lore.add("");
                         lore.add(ChatColor.YELLOW + "Lewy klik: " + ChatColor.GRAY + "Zmień ilość");
                         lore.add(ChatColor.YELLOW + "Prawy klik: " + ChatColor.GRAY + "Zmień szansę");
+                        lore.add(ChatColor.YELLOW + "Shift + Prawy klik: " + ChatColor.GRAY + "Usuń nagrodę");
                         
                         meta.setLore(lore);
                         rewardItem.setItemMeta(meta);
+                    }
+                    
+                    // Dodaj enchanty, jeśli istnieją
+                    if (rewardMap.containsKey("enchantments") && rewardMap.get("enchantments") instanceof Map) {
+                        Map<?, ?> enchants = (Map<?, ?>) rewardMap.get("enchantments");
+                        
+                        enchants.forEach((key, value) -> {
+                            if (key instanceof String && value instanceof Number) {
+                                String enchantKey = (String) key;
+                                int level = ((Number) value).intValue();
+                                
+                                // Użyj Bukkit API do odnalezienia enchantu
+                                for (Enchantment enchantment : Enchantment.values()) {
+                                    if (enchantment.getKey().getKey().equalsIgnoreCase(enchantKey)) {
+                                        rewardItem.addUnsafeEnchantment(enchantment, level);
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    // Dodaj flagi przedmiotu, jeśli istnieją
+                    if (rewardMap.containsKey("item_flags") && rewardMap.get("item_flags") instanceof List) {
+                        List<?> flags = (List<?>) rewardMap.get("item_flags");
+                        ItemMeta itemMeta = rewardItem.getItemMeta();
+                        if (itemMeta != null) {
+                            flags.forEach(flag -> {
+                                if (flag instanceof String) {
+                                    try {
+                                        ItemFlag itemFlag = ItemFlag.valueOf((String) flag);
+                                        itemMeta.addItemFlags(itemFlag);
+                                    } catch (IllegalArgumentException ignored) {
+                                        if (debug()) {
+                                            Bukkit.getLogger().warning("[SMMetin] Nieprawidłowa flaga przedmiotu: " + flag);
+                                        }
+                                    }
+                                }
+                            });
+                            rewardItem.setItemMeta(itemMeta);
+                        }
                     }
                     
                     gui.setItem(slot++, rewardItem);
@@ -327,6 +363,16 @@ public class RewardsGUI implements Listener {
                     } 
                     // Obsługa kliknięcia na nagrodę (sloty 18+)
                     else if (event.getCurrentItem() != null && event.getCurrentItem().getType() != Material.AIR) {
+                        // Obsługa usuwania nagrody przez Shift + Prawy przycisk
+                        if (event.isShiftClick() && event.isRightClick()) {
+                            if (debug()) {
+                                Bukkit.getLogger().info("[SMMetin] Usuwanie nagrody: slot=" + event.getSlot());
+                            }
+                            event.getInventory().setItem(event.getSlot(), null);
+                            event.setCancelled(true);
+                            return;
+                        }
+                        
                         // Zatrzymaj standardowe przenoszenie przedmiotu i zamiast tego rozpocznij edycję
                         event.setCancelled(true);
                         
@@ -358,7 +404,7 @@ public class RewardsGUI implements Listener {
                                                       ", slot=" + slot);
                             }
                             player.closeInventory(); // Zamknij ekwipunek aby umożliwić wpisanie tekstu
-                            player.sendMessage(ChatColor.GREEN + "Wpisz ilość przedmiotu (np. \"1-3\" lub \"5\"):");
+                            player.sendMessage(ChatColor.GREEN + "Wpisz ilość przedmiotu (np. \"1-3\" lub \"5\"). Wpisz \"0\" aby usunąć przedmiot:");
                         } else if (event.isRightClick()) {
                             // Edycja szansy
                             playerEditMode.put(player.getUniqueId(), EditMode.CHANCE);
@@ -411,56 +457,51 @@ public class RewardsGUI implements Listener {
                                 Bukkit.getLogger().info("[SMMetin] Dodano przedmiot do slotu " + event.getSlot() + ": " + placedItem.getType());
                             }
                             
-                            // Dodaj lore z domyślnymi wartościami
                             ItemMeta meta = placedItem.getItemMeta();
                             if (meta != null) {
-                                List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-                                List<String> customLore = new ArrayList<>();
+                                List<String> lore = new ArrayList<>();
                                 
-                                // Zachowaj niestandardowe lore, jeśli istnieje (te, które nie są częścią GUI)
+                                // Zachowaj oryginalne lore wraz z pustymi liniami
                                 if (meta.hasLore()) {
-                                    for (String line : meta.getLore()) {
+                                    List<String> originalLore = meta.getLore();
+                                    for (String line : originalLore) {
                                         if (!line.startsWith(ChatColor.GRAY + "Ilość: ") &&
                                             !line.startsWith(ChatColor.GRAY + "Szansa: ") &&
-                                            !line.equals("") &&
                                             !line.startsWith(ChatColor.YELLOW + "Lewy klik: ") &&
-                                            !line.startsWith(ChatColor.YELLOW + "Prawy klik: ")) {
-                                            customLore.add(line);
+                                            !line.startsWith(ChatColor.YELLOW + "Prawy klik: ") &&
+                                            !line.startsWith(ChatColor.YELLOW + "Shift + Prawy klik: ")) {
+                                            lore.add(line);
                                         }
                                     }
-                                }
-                                
-                                // Wyczyść istniejące lore
-                                lore.clear();
-                                
-                                // Dodaj niestandardowe lore
-                                if (!customLore.isEmpty()) {
-                                    lore.addAll(customLore);
-                                    lore.add(""); // Odstęp po niestandardowym lore
                                     
-                                    if (debug()) {
-                                        Bukkit.getLogger().info("[SMMetin] Zachowano niestandardowe lore: " + customLore);
+                                    // Usuń ostatnią pustą linię, jeśli istnieje
+                                    while (!lore.isEmpty() && lore.get(lore.size() - 1).isEmpty()) {
+                                        lore.remove(lore.size() - 1);
                                     }
                                 }
                                 
-                                // Dodaj nowe informacje o ilości i szansie
+                                // Zachowaj enchanty i ich widoczność
+                                Map<Enchantment, Integer> enchants = new HashMap<>(placedItem.getEnchantments());
+                                Set<ItemFlag> flags = new HashSet<>(meta.getItemFlags());
+                                
+                                // Dodaj informacje o edycji
                                 lore.add(ChatColor.GRAY + "Ilość: " + ChatColor.YELLOW + "1-1");
                                 lore.add(ChatColor.GRAY + "Szansa: " + ChatColor.YELLOW + "1.0%");
                                 lore.add("");
                                 lore.add(ChatColor.YELLOW + "Lewy klik: " + ChatColor.GRAY + "Zmień ilość");
                                 lore.add(ChatColor.YELLOW + "Prawy klik: " + ChatColor.GRAY + "Zmień szansę");
+                                lore.add(ChatColor.YELLOW + "Shift + Prawy klik: " + ChatColor.GRAY + "Usuń nagrodę");
                                 
+                                // Ustaw wszystkie właściwości z powrotem
                                 meta.setLore(lore);
                                 placedItem.setItemMeta(meta);
                                 
-                                if (debug()) {
-                                    Bukkit.getLogger().info("[SMMetin] Zaktualizowano lore przedmiotu: " + placedItem.getType());
-                                    if (meta.hasDisplayName()) {
-                                        Bukkit.getLogger().info("[SMMetin] Przedmiot ma nazwę: " + meta.getDisplayName());
-                                    }
-                                    if (meta.hasLore()) {
-                                        Bukkit.getLogger().info("[SMMetin] Przedmiot ma lore: " + meta.getLore());
-                                    }
+                                // Przywróć enchanty i flagi
+                                placedItem.addUnsafeEnchantments(enchants);
+                                ItemMeta updatedMeta = placedItem.getItemMeta();
+                                if (updatedMeta != null) {
+                                    flags.forEach(updatedMeta::addItemFlags);
+                                    placedItem.setItemMeta(updatedMeta);
                                 }
                             }
                         }
@@ -633,20 +674,32 @@ public class RewardsGUI implements Listener {
                         if (currentMode == EditMode.AMOUNT) {
                             // Walidacja formatu ilości
                             String amountStr = input;
-                            if (!isValidAmountFormat(amountStr)) {
-                                player.sendMessage(ChatColor.RED + "Nieprawidłowy format! Użyj formatu \"1-3\" lub \"5\".");
-                                if (debug()) {
-                                    Bukkit.getLogger().warning("[SMMetin] Nieprawidłowy format ilości: " + amountStr);
-                                }
-                                reopenRewardsMenu(player, metinType);
-                                return;
-                            }
                             
-                            currentReward.put("amount", amountStr);
-                            if (debug()) {
-                                Bukkit.getLogger().info("[SMMetin] Ustawiono ilość na: " + amountStr);
+                            // Specjalna obsługa dla ilości równej 0
+                            if (amountStr.trim().equals("0")) {
+                                if (debug()) {
+                                    Bukkit.getLogger().info("[SMMetin] Ustawiono ilość 0 - usuwam przedmiot");
+                                }
+                                // Usuń nagrodę
+                                rewards.remove(rewardIndex);
+                                player.sendMessage(ChatColor.GREEN + "Nagroda została usunięta.");
+                            } else {
+                                // Standardowa walidacja ilości
+                                if (!isValidAmountFormat(amountStr)) {
+                                    player.sendMessage(ChatColor.RED + "Nieprawidłowy format! Użyj formatu \"1-3\" lub \"5\".");
+                                    if (debug()) {
+                                        Bukkit.getLogger().warning("[SMMetin] Nieprawidłowy format ilości: " + amountStr);
+                                    }
+                                    reopenRewardsMenu(player, metinType);
+                                    return;
+                                }
+                                
+                                currentReward.put("amount", amountStr);
+                                if (debug()) {
+                                    Bukkit.getLogger().info("[SMMetin] Ustawiono ilość na: " + amountStr);
+                                }
+                                player.sendMessage(ChatColor.GREEN + "Ustawiono ilość: " + amountStr);
                             }
-                            player.sendMessage(ChatColor.GREEN + "Ustawiono ilość: " + amountStr);
                         } else if (currentMode == EditMode.CHANCE) {
                             // Walidacja szansy
                             double chance;
@@ -823,23 +876,7 @@ public class RewardsGUI implements Listener {
     
     private void saveRewards(Player player, String metinType, Inventory inventory) {
         if (debug()) {
-            Bukkit.getLogger().info("[SMMetin] Rozpoczęcie zapisywania nagród dla: " + metinType);
-            Bukkit.getLogger().info("[SMMetin] Zawartość inwentarza:");
-            for (int i = 18; i < inventory.getSize(); i++) {
-                ItemStack item = inventory.getItem(i);
-                if (item != null && item.getType() != Material.AIR) {
-                    Bukkit.getLogger().info("[SMMetin]  - Slot " + i + ": " + item.getType() + " x" + item.getAmount());
-                }
-            }
-        }
-        
-        // Sprawdź czy metinType nie jest pusty
-        if (metinType == null || metinType.isEmpty()) {
-            if (debug()) {
-                Bukkit.getLogger().severe("[SMMetin] Próba zapisu nagród z pustym typem metina!");
-            }
-            player.sendMessage(ChatColor.RED + "Błąd: Brak typu Metina!");
-            return;
+            Bukkit.getLogger().info("[SMMetin] Zapisywanie nagród dla: " + metinType);
         }
         
         List<Map<String, Object>> rewards = new ArrayList<>();
@@ -849,156 +886,110 @@ public class RewardsGUI implements Listener {
             ItemStack item = inventory.getItem(i);
             if (item != null && item.getType() != Material.AIR) {
                 Map<String, Object> rewardMap = new HashMap<>();
-                rewardMap.put("material", item.getType().toString());
-                
-                // Pobierz ilość i szansę z lore jeśli są dostępne
-                String amountStr = "1-1"; // Domyślna wartość
-                double chance = 0.01; // Domyślna wartość (1%)
+                rewardMap.put("material", item.getType().name());
                 
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
-                    // Zapisz niestandardową nazwę, jeśli istnieje
+                    // Zapisz niestandardową nazwę
                     if (meta.hasDisplayName()) {
-                        String displayName = meta.getDisplayName();
-                        // Zapisujemy nazwę bez kodów kolorów, aby umożliwić prawidłowe załadowanie
-                        rewardMap.put("name", displayName);
-                        if (debug()) {
-                            Bukkit.getLogger().info("[SMMetin] Zapisuję niestandardową nazwę: " + displayName);
+                        rewardMap.put("name", meta.getDisplayName());
+                    }
+                    
+                    // Zapisz niestandardowe lore
+                    if (meta.hasLore()) {
+                        List<String> customLore = new ArrayList<>();
+                        
+                        for (String line : meta.getLore()) {
+                            if (!line.startsWith(ChatColor.GRAY + "Ilość: ") &&
+                                !line.startsWith(ChatColor.GRAY + "Szansa: ") &&
+                                !line.startsWith(ChatColor.YELLOW + "Lewy klik: ") &&
+                                !line.startsWith(ChatColor.YELLOW + "Prawy klik: ") &&
+                                !line.startsWith(ChatColor.YELLOW + "Shift + Prawy klik: ")) {
+                                customLore.add(line);
+                            }
+                        }
+                        
+                        // Usuń ostatnią pustą linię, jeśli istnieje
+                        while (!customLore.isEmpty() && customLore.get(customLore.size() - 1).isEmpty()) {
+                            customLore.remove(customLore.size() - 1);
+                        }
+                        
+                        if (!customLore.isEmpty()) {
+                            rewardMap.put("lore", customLore);
                         }
                     }
                     
-                    if (meta.hasLore()) {
-                        List<String> lore = meta.getLore();
-                        List<String> customLore = new ArrayList<>();
-                        boolean hasCustomLore = false;
+                    // Zapisz wszystkie flagi przedmiotu
+                    Set<ItemFlag> flags = meta.getItemFlags();
+                    if (!flags.isEmpty()) {
+                        List<String> flagsList = flags.stream()
+                                .map(ItemFlag::name)
+                                .collect(Collectors.toList());
+                        rewardMap.put("item_flags", flagsList);
                         
-                        // Przeszukaj lore, szukając linii konfiguracyjnych i niestandardowych
-                        for (String line : lore) {
-                            // Sprawdź, czy linia zawiera informacje o ilości lub szansie
-                            if (line.startsWith(ChatColor.GRAY + "Ilość: ")) {
-                                String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
-                                if (!valueStr.isEmpty()) {
-                                    amountStr = valueStr;
-                                }
-                            } else if (line.startsWith(ChatColor.GRAY + "Szansa: ")) {
-                                String valueStr = ChatColor.stripColor(line.substring(line.indexOf(":") + 1).trim());
-                                if (valueStr.endsWith("%")) {
-                                    valueStr = valueStr.substring(0, valueStr.length() - 1);
-                                }
-                                try {
-                                    chance = Double.parseDouble(valueStr) / 100.0;
-                                } catch (NumberFormatException ignored) {
-                                    if (debug()) {
-                                        Bukkit.getLogger().warning("[SMMetin] Nie można sparsować szansy: " + valueStr);
-                                    }
-                                }
-                            } else if (!line.equals("") && 
-                                      !line.startsWith(ChatColor.YELLOW + "Lewy klik: ") && 
-                                      !line.startsWith(ChatColor.YELLOW + "Prawy klik: ")) {
-                                // Zapisz niestandardowe linie lore, które nie są częścią interfejsu
-                                customLore.add(line);
-                                hasCustomLore = true;
-                            }
-                        }
-                        
-                        // Jeśli znaleziono niestandardowe lore, zapisz je
-                        if (hasCustomLore) {
-                            rewardMap.put("lore", customLore);
-                            if (debug()) {
-                                Bukkit.getLogger().info("[SMMetin] Zapisuję niestandardowe lore: " + customLore);
-                            }
-                        }
-                    } else {
                         if (debug()) {
-                            Bukkit.getLogger().info("[SMMetin] Przedmiot bez lore, używam domyślnych wartości: amount=1-1, chance=1%");
+                            Bukkit.getLogger().info("[SMMetin] Zapisano flagi przedmiotu: " + flagsList);
                         }
+                    }
+                    
+                    // Zapisz enchanty
+                    if (!item.getEnchantments().isEmpty()) {
+                        Map<String, Integer> enchants = new HashMap<>();
+                        item.getEnchantments().forEach((enchantment, level) -> {
+                            enchants.put(enchantment.getKey().getKey(), level);
+                        });
+                        rewardMap.put("enchantments", enchants);
+                    }
+                    
+                    // Pobierz ilość i szansę z lore
+                    if (meta.hasLore()) {
+                        for (String line : meta.getLore()) {
+                            if (line.startsWith(ChatColor.GRAY + "Ilość: ")) {
+                                String amountStr = ChatColor.stripColor(line).substring(7).trim();
+                                rewardMap.put("amount", amountStr);
+                            } else if (line.startsWith(ChatColor.GRAY + "Szansa: ")) {
+                                String chanceStr = ChatColor.stripColor(line).substring(8).trim();
+                                chanceStr = chanceStr.replace("%", "").trim();
+                                try {
+                                    double chance = Double.parseDouble(chanceStr) / 100.0;
+                                    rewardMap.put("chance", chance);
+                                } catch (NumberFormatException e) {
+                                    rewardMap.put("chance", 0.01);
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Dodaj domyślne wartości, jeśli nie znaleziono w lore
+                    if (!rewardMap.containsKey("amount")) {
+                        rewardMap.put("amount", "1-1");
+                    }
+                    if (!rewardMap.containsKey("chance")) {
+                        rewardMap.put("chance", 0.01);
                     }
                 }
                 
-                rewardMap.put("amount", amountStr);
-                rewardMap.put("chance", chance);
-                
-                // Dodaj nagrodę do listy
                 rewards.add(rewardMap);
-                
-                if (debug()) {
-                    Bukkit.getLogger().info("[SMMetin] Dodano nagrodę: " + rewardMap);
-                }
             }
         }
         
         // Zapisz nagrody do konfiguracji
         File metinsFile = new File(plugin.getDataFolder(), "metins.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(metinsFile);
-        
         String path = "metins." + metinType + ".rewards.items";
-        
-        // Wypisz wszystkie nagrody przed zapisem dla debugowania
-        if (debug()) {
-            Bukkit.getLogger().info("[SMMetin] Zapisuję " + rewards.size() + " nagród dla Metina " + metinType + " do ścieżki " + path);
-            for (int i = 0; i < rewards.size(); i++) {
-                Bukkit.getLogger().info("[SMMetin] Nagroda " + (i+1) + ": " + rewards.get(i));
-            }
-        }
-        
-        // Sprawdź, czy sekcja metins istnieje
-        if (!config.contains("metins")) {
-            if (debug()) {
-                Bukkit.getLogger().severe("[SMMetin] Sekcja metins nie istnieje w konfiguracji!");
-            }
-            player.sendMessage(ChatColor.RED + "Błąd: Brak sekcji metins w konfiguracji!");
-            return;
-        }
-        
-        // Sprawdź, czy sekcja metina istnieje
-        if (!config.contains("metins." + metinType)) {
-            if (debug()) {
-                Bukkit.getLogger().severe("[SMMetin] Sekcja metina nie istnieje w konfiguracji: " + metinType);
-                Bukkit.getLogger().info("[SMMetin] Dostępne typy: " + config.getConfigurationSection("metins").getKeys(false));
-            }
-            player.sendMessage(ChatColor.RED + "Błąd: Nie znaleziono sekcji Metina w konfiguracji");
-            return;
-        }
-        
-        // Upewnij się, że sekcja rewards istnieje
-        if (!config.contains("metins." + metinType + ".rewards")) {
-            if (debug()) {
-                Bukkit.getLogger().info("[SMMetin] Tworzę sekcję rewards dla Metina: " + metinType);
-            }
-            config.createSection("metins." + metinType + ".rewards");
-        }
         
         config.set(path, rewards);
         
         try {
             config.save(metinsFile);
-            
-            // Sprawdź, czy nagrody zostały zapisane
-            if (debug()) {
-                YamlConfiguration checkConfig = YamlConfiguration.loadConfiguration(metinsFile);
-                List<Map<?, ?>> savedRewards = checkConfig.getMapList(path);
-                Bukkit.getLogger().info("[SMMetin] Po zapisie znaleziono " + savedRewards.size() + " nagród w ścieżce " + path);
-                for (int i = 0; i < savedRewards.size(); i++) {
-                    Bukkit.getLogger().info("[SMMetin] Zapisana nagroda " + (i+1) + ": " + savedRewards.get(i));
-                }
-            }
-            
-            // Wyświetl wiadomość tylko raz
             player.sendMessage(ChatColor.GREEN + "Nagrody dla Metina " + metinType + " zostały zapisane!");
             
-            // Tymczasowo wyłącz logi debug w MetinManager, aby uniknąć podwójnych komunikatów
-            if (debug()) {
-                Bukkit.getLogger().info("[SMMetin] Zapisano nagrody dla Metina " + metinType);
-            }
-            
+            // Tymczasowo wyłącz logi debug w MetinManager
             boolean previousDebug = plugin.getMetinManager().isDebug();
             plugin.getMetinManager().setDebug(false);
             plugin.getMetinManager().reloadConfig();
             plugin.getMetinManager().setDebug(previousDebug);
             
-            if (debug()) {
-                Bukkit.getLogger().info("[SMMetin] Konfiguracja została przeładowana");
-            }
         } catch (IOException e) {
             player.sendMessage(ChatColor.RED + "Błąd podczas zapisywania nagród: " + e.getMessage());
             if (debug()) {

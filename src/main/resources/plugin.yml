@@ -2,7 +2,7 @@ name: SMMetin
 version: '${project.version}'
 main: pl.stylowamc.smmetin.Smmetin
 api-version: 1.19
-softdepend: [Vault]
+softdepend: [Vault, WorldGuard]
 authors: [Styluś]
 description: Plugin dodający bloki Metina które po zniszczeniu dają nagrody.
 

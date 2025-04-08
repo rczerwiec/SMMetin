@@ -1,5 +1,6 @@
 package pl.stylowamc.smmetin.metin;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,6 +15,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -35,6 +37,12 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.managers.RegionManager;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldedit.math.BlockVector3;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,6 +50,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.Random;
 import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Metin {
     private final String id;
@@ -65,11 +75,15 @@ public class Metin {
     private long lastKnockbackTime = 0;
     private Plugin plugin;
     private long spawnTime;
+    private final Map<Location, Material> lavaBlocks = new HashMap<>();
 
     public Metin(String id, String displayName, Location location, double health, ConfigurationSection config, Plugin plugin) {
         this.id = id;
         this.displayName = displayName;
-        this.location = location;
+        this.location = findValidLocation(location, 10);
+        if (this.location == null) {
+            throw new IllegalStateException("Nie można znaleźć odpowiedniej lokalizacji dla Metina!");
+        }
         this.maxHealth = health;
         this.currentHealth = health;
         this.damageContributors = new HashMap<>();
@@ -81,15 +95,11 @@ public class Metin {
         this.plugin = plugin;
         this.spawnTime = System.currentTimeMillis();
         
-        if (canCreateMetin()) {
-            createMetinBlock();
-            createHologram();
-            startLifetimeTimer();
-            if (debug) {
-                debugLog("Utworzono nowego Metina: " + id + " (" + displayName + ") z " + health + " HP");
-            }
-        } else {
-            throw new IllegalStateException("Nie można stworzyć Metina w wodzie!");
+        createMetinBlock();
+        createHologram();
+        startLifetimeTimer();
+        if (debug) {
+            debugLog("Utworzono nowego Metina: " + id + " (" + displayName + ") z " + health + " HP");
         }
     }
 
@@ -99,9 +109,12 @@ public class Metin {
         }
     }
 
-    private boolean canCreateMetin() {
-        Block block = location.getBlock();
+    private boolean canCreateMetin(Block block) {
         Block above = block.getRelative(BlockFace.UP);
+        Block below = block.getRelative(BlockFace.DOWN);
+        
+        // Sprawdź czy blok pod Metinem jest solidny
+        boolean solidGround = below.getType().isSolid() && !below.getType().name().contains("LEAVES");
         
         // Sprawdzamy czy blok lub blok nad nim to woda
         boolean notWater = !block.getType().equals(Material.WATER) && 
@@ -117,15 +130,84 @@ public class Metin {
         boolean notBarrier = !block.getType().equals(Material.BARRIER) &&
                 !above.getType().equals(Material.BARRIER);
                 
-        if (debug && !notLeaves) {
-            debugLog("Nie można utworzyć Metina na liściach drzewa!");
+        // Sprawdź czy lokacja nie jest w chronionym regionie
+        boolean notInRegion = true;
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            try {
+                RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
+                RegionManager regions = container.get(BukkitAdapter.adapt(block.getWorld()));
+                
+                if (regions != null) {
+                    BlockVector3 vec = BlockVector3.at(
+                        block.getX(), 
+                        block.getY(), 
+                        block.getZ()
+                    );
+                    
+                    notInRegion = regions.getApplicableRegions(vec).size() == 0;
+                    
+                    if (debug && !notInRegion) {
+                        debugLog("Nie można utworzyć Metina - lokacja znajduje się w chronionym regionie!");
+                    }
+                }
+            } catch (Exception e) {
+                if (debug) {
+                    debugLog("Błąd podczas sprawdzania regionów: " + e.getMessage());
+                }
+            }
+        }
+                
+        if (debug) {
+            if (!solidGround) {
+                debugLog("Nie można utworzyć Metina - brak solidnego podłoża!");
+            }
+            if (!notLeaves) {
+                debugLog("Nie można utworzyć Metina na liściach drzewa!");
+            }
+            if (!notBarrier) {
+                debugLog("Nie można utworzyć Metina na bloku barrier!");
+            }
         }
         
-        if (debug && !notBarrier) {
-            debugLog("Nie można utworzyć Metina na bloku barrier!");
+        return solidGround && notWater && notLeaves && notBarrier && notInRegion;
+    }
+
+    private Location findValidLocation(Location baseLocation, int maxAttempts) {
+        if (maxAttempts <= 0) {
+            if (debug) {
+                debugLog("Osiągnięto maksymalną liczbę prób znalezienia lokalizacji");
+            }
+            return null;
         }
         
-        return notWater && notLeaves && notBarrier;
+        // Znajdź najwyższy blok w tej lokalizacji
+        Location highestBlock = baseLocation.getWorld().getHighestBlockAt(baseLocation).getLocation();
+        Block block = highestBlock.getBlock();
+        
+        if (canCreateMetin(block)) {
+            return highestBlock;
+        }
+
+        // Szukaj w coraz większym promieniu
+        int radius = 5 * ((11 - maxAttempts) + 1); // Zwiększaj promień z każdą próbą
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                Location newLoc = baseLocation.clone().add(x, 0, z);
+                // Znajdź najwyższy blok w nowej lokalizacji
+                Location newHighestBlock = newLoc.getWorld().getHighestBlockAt(newLoc).getLocation();
+                Block newBlock = newHighestBlock.getBlock();
+                
+                if (canCreateMetin(newBlock)) {
+                    if (debug) {
+                        debugLog("Znaleziono odpowiednią lokalizację w promieniu " + radius + " bloków");
+                    }
+                    return newHighestBlock;
+                }
+            }
+        }
+
+        // Jeśli nie znaleziono, spróbuj ponownie z większym promieniem
+        return findValidLocation(baseLocation, maxAttempts - 1);
     }
 
     private void createMetinBlock() {
@@ -405,6 +487,9 @@ public class Metin {
         // Sprawdź odpychanie
         tryKnockback(player);
 
+        // Sprawdź czy stworzyć lawę
+        trySpawnLava(player);
+
         if (debug) {
             debugLog("HP po obrażeniach: " + currentHealth);
         }
@@ -421,8 +506,6 @@ public class Metin {
                 Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("SMMetin"), () -> {
                     spawnMobs();
                 });
-            } else if (debug) {
-                debugLog("Nie wylosowano spawnu mobów (szansa 30%)");
             }
         }
     }
@@ -461,6 +544,49 @@ public class Metin {
         }
     }
 
+    private void trySpawnLava(Player player) {
+        if (!config.contains("lava") || !config.getConfigurationSection("lava").getBoolean("enabled", false)) {
+            return;
+        }
+
+        double chance = config.getConfigurationSection("lava").getDouble("chance", 0.02);
+        if (random.nextDouble() <= chance) {
+            Location playerLoc = player.getLocation().getBlock().getLocation();
+            Block targetBlock = playerLoc.getBlock();
+            
+            // Sprawdź czy blok nie jest już lawą i czy nie jest już śledzony
+            if (!targetBlock.getType().equals(Material.LAVA) && !lavaBlocks.containsKey(playerLoc)) {
+                Material originalMaterial = targetBlock.getType();
+                
+                // Dodaj do mapy przed zmianą typu bloku
+                lavaBlocks.put(playerLoc.clone(), originalMaterial);
+                
+                // Zmień blok na lawę
+                targetBlock.setType(Material.LAVA);
+                
+                if (debug) {
+                    debugLog("Stworzono lawę pod graczem " + player.getName());
+                    debugLog("Lokalizacja lawy: " + playerLoc);
+                    debugLog("Oryginalny materiał: " + originalMaterial);
+                }
+                
+                // Zaplanuj automatyczne usunięcie lawy po 10 sekundach
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (lavaBlocks.containsKey(playerLoc)) {
+                        Block block = playerLoc.getBlock();
+                        if (block.getType() == Material.LAVA) {
+                            block.setType(lavaBlocks.get(playerLoc));
+                            lavaBlocks.remove(playerLoc);
+                            if (debug) {
+                                debugLog("Automatycznie usunięto lawę po 10 sekundach");
+                            }
+                        }
+                    }
+                }, 200L); // 200 ticków = 10 sekund
+            }
+        }
+    }
+
     private void handleDestroy() {
         if (debug) {
             debugLog("Rozpoczęto proces zniszczenia Metina " + id);
@@ -470,95 +596,151 @@ public class Metin {
         location.getWorld().createExplosion(location, 0.0f, false, false);
         location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
         
-        // Wyślij wiadomość o zniszczeniu Metina
-        String destroyMsg = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.metin-destroy", 
-                "&aMetin &e{name} &azostał zniszczony!")
-                .replace("{name}", displayName);
-        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', destroyMsg));
-        
-        // Oblicz całkowite obrażenia zadane przez wszystkich graczy
+        // Oblicz całkowite obrażenia
         double totalDamage = damageContributors.values().stream().mapToDouble(Double::doubleValue).sum();
         
-        // Zbierz listę wszystkich uczestników walki
-        List<UUID> participants = new ArrayList<>(damageContributors.keySet());
-        
-        // Przygotuj mapę zawierającą udział procentowy każdego gracza
-        Map<UUID, Double> damagePercentages = new HashMap<>();
-        for (Map.Entry<UUID, Double> entry : damageContributors.entrySet()) {
-            double percentage = (entry.getValue() / totalDamage) * 100.0;
-            damagePercentages.put(entry.getKey(), percentage);
-        }
-        
-        // Posortuj graczy według zadanych obrażeń (od najwyższych do najniższych)
+        // Posortuj graczy według zadanych obrażeń
         List<Map.Entry<UUID, Double>> sortedContributors = damageContributors.entrySet()
                 .stream()
                 .sorted(Map.Entry.<UUID, Double>comparingByValue().reversed())
                 .collect(Collectors.toList());
         
-        // Debug informacja o graczach
-        if (debug) {
-            debugLog("Zniszczenie Metina - udziały graczy:");
-            for (int i = 0; i < sortedContributors.size(); i++) {
-                Map.Entry<UUID, Double> entry = sortedContributors.get(i);
-                double percentage = (entry.getValue() / totalDamage) * 100.0;
-                debugLog("Pozycja " + (i+1) + ": " + Bukkit.getOfflinePlayer(entry.getKey()).getName() + 
-                        " - " + entry.getValue() + " dmg (" + String.format("%.2f", percentage) + "%)");
-            }
-        }
+        // Wyślij wiadomość o zniszczeniu Metina
+        String destroyMsg = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.metin-destroy", 
+                "&c&lMetin &e&l{name} &c&lzostał zgładzony")
+                .replace("{name}", displayName);
+        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', destroyMsg));
         
-        // Upuść trofeum (przed przyznaniem nagród dla graczy)
-        dropTrophy();
+        // Wyślij nagłówek rankingu
+        String headerMsg = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.metin-destroy-header",
+                "&e&lRanking obrażeń:");
+        Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', headerMsg));
         
-        // Przygotuj listę nagród dla każdego gracza
-        Map<UUID, List<ItemStack>> playerRewards = new HashMap<>();
-        Map<UUID, Integer> playerExp = new HashMap<>();
-        Map<UUID, Double> playerMoney = new HashMap<>();
-        
-        // Przyznaj nagrody dla wszystkich graczy według ich pozycji na liście
-        for (int i = 0; i < sortedContributors.size(); i++) {
-            Map.Entry<UUID, Double> entry = sortedContributors.get(i);
+        // Przygotuj nagrody i komunikaty dla każdego gracza
+        int position = 1;
+        for (Map.Entry<UUID, Double> entry : sortedContributors) {
             UUID playerId = entry.getKey();
             double damage = entry.getValue();
             double percentage = (damage / totalDamage) * 100.0;
-            
-            // Określ pozycję gracza dla ustalenia szansy na nagrodę
-            int position = i + 1;
-            
             Player player = Bukkit.getPlayer(playerId);
+            
             if (player != null && player.isOnline()) {
-                // Przekaż informacje o wszystkich uczestnikach do metody giveRewards
-                giveRewards(player, percentage, position, participants);
+                // Przygotuj nagrody
+                List<ItemStack> items = getRewardItems(percentage);
+                int experience = calculateExperience(percentage);
+                double money = calculateMoney(percentage);
+                
+                // Przyznaj nagrody
+                giveRewardsToPlayer(player, items, experience, money);
+                
+                // Przygotuj tekst z nagrodami
+                String rewardsText = formatRewardsList(items);
+                
+                // Nowy format komunikatu
+                String entryMsg = String.format("&7%d. &f%s &7%d%% Obrażeń &8| &6%d$ &8| &a%dXP\n&7Nagrody: &e[%s]",
+                        position,
+                        player.getName(),
+                        Math.round(percentage),
+                        Math.round(money),
+                        experience,
+                        rewardsText);
+                
+                Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', entryMsg));
+                position++;
             }
         }
         
-        // Usuń blok
-        if (metinBlock != null) {
-            metinBlock.setType(Material.AIR);
-        }
-        if (metinBlockTop != null) {
-            metinBlockTop.setType(Material.AIR);
+        // Sprawdź czy wypadło trofeum i wyświetl komunikat tylko jeśli faktycznie wypadło
+        if (checkAndDropTrophy()) {
+            String trophyMsg = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.metin-trophy-drop",
+                    "&e&lMetin ten wydropił trofeum!");
+            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', trophyMsg));
         }
         
-        // Usuń hologramy i moby
+        // Usuń bloki i wyczyść
         cleanup();
         
-        // Usuń siebie z listy aktywnych Metinów
-        if (plugin != null) {
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                if (plugin instanceof Smmetin) {
-                    ((Smmetin) plugin).getMetinManager().removeMetin(id);
-                }
-            });
-        }
+        // Usuń Metina z listy aktywnych Metinów
+        ((Smmetin) plugin).getMetinManager().removeMetin(id);
         
         if (debug) {
             debugLog("Zakończono proces zniszczenia Metina " + id);
         }
     }
 
-    /**
-     * Tworzy i upuszcza trofeum na miejscu zniszczenia Metina, jeśli jest włączone w konfiguracji.
-     */
+    private double calculateMoney(double percentage) {
+        if (config.contains("rewards.money")) {
+            String moneyRange = config.getString("rewards.money");
+            try {
+                String[] parts = moneyRange.split("-");
+                double minMoney = Double.parseDouble(parts[0]);
+                double maxMoney = Double.parseDouble(parts[1]);
+                double money = minMoney + (random.nextDouble() * (maxMoney - minMoney));
+                return Math.round((money * percentage / 100.0) * 100.0) / 100.0;
+            } catch (Exception e) {
+                if (debug) {
+                    debugLog("Błąd podczas obliczania nagrody pieniężnej: " + e.getMessage());
+                }
+            }
+        }
+        return 0.0;
+    }
+
+    private void giveRewardsToPlayer(Player player, List<ItemStack> items, int experience, double money) {
+        // Dodaj przedmioty
+        for (ItemStack item : items) {
+            ItemStack itemToGive = item.clone();
+            ItemMeta meta = itemToGive.getItemMeta();
+            
+            if (meta != null) {
+                // Zachowaj wszystkie flagi przedmiotu
+                Set<ItemFlag> flags = new HashSet<>(meta.getItemFlags());
+                Map<Enchantment, Integer> enchants = new HashMap<>(meta.getEnchants());
+                String displayName = meta.hasDisplayName() ? meta.getDisplayName() : null;
+                List<String> lore = meta.hasLore() ? meta.getLore() : null;
+                
+                // Ustaw wszystkie zachowane właściwości
+                flags.forEach(meta::addItemFlags);
+                enchants.forEach((enchant, level) -> meta.addEnchant(enchant, level, true));
+                if (displayName != null) meta.setDisplayName(displayName);
+                if (lore != null) meta.setLore(lore);
+                
+                itemToGive.setItemMeta(meta);
+            }
+            
+            if (player.getInventory().firstEmpty() != -1) {
+                player.getInventory().addItem(itemToGive);
+            } else {
+                player.getWorld().dropItemNaturally(player.getLocation(), itemToGive);
+                player.sendMessage(ChatColor.RED + "Twój ekwipunek jest pełny! Przedmiot został upuszczony na ziemię.");
+            }
+        }
+        
+        // Dodaj doświadczenie
+        player.giveExp(experience);
+        
+        // Dodaj pieniądze
+        if (((Smmetin) plugin).getEconomyManager().isEnabled()) {
+            ((Smmetin) plugin).getEconomyManager().addMoney(player, money);
+        }
+    }
+
+    private boolean checkAndDropTrophy() {
+        if (!config.contains("trophy") || !config.getConfigurationSection("trophy").getBoolean("enabled", false)) {
+            return false;
+        }
+        
+        ConfigurationSection trophySection = config.getConfigurationSection("trophy");
+        double chance = trophySection.getDouble("chance", 0.2);
+        
+        if (random.nextDouble() <= chance) {
+            dropTrophy();
+            return true;
+        }
+        
+        return false;
+    }
+
     private void dropTrophy() {
         if (!config.contains("trophy") || !config.getConfigurationSection("trophy").getBoolean("enabled", false)) {
             if (debug) {
@@ -657,201 +839,6 @@ public class Metin {
         }
     }
 
-    private void giveRewards(Player player, double percentage, int position, List<UUID> allParticipants) {
-        if (debug) {
-            debugLog("Przyznawanie nagród dla gracza " + player.getName() + 
-                    " (pozycja: " + position + ", udział: " + String.format("%.2f", percentage) + "%)");
-        }
-
-        // Sprawdź, czy gracz jest online
-        if (!player.isOnline()) {
-            if (debug) {
-                debugLog("Gracz " + player.getName() + " nie jest online, pomijam nagrody");
-            }
-            return;
-        }
-        
-        // Wyślij informację o zniszczeniu Metina wszystkim uczestnikom
-        for (UUID participantId : allParticipants) {
-            Player participant = Bukkit.getPlayer(participantId);
-            if (participant != null && participant.isOnline()) {
-                if (participantId.equals(player.getUniqueId())) {
-                    continue; // Pomijamy głównego gracza, który odbiera nagrody (otrzyma to później)
-                }
-                
-                // Wyślij informację o graczu, który najbardziej przyczynił się do zniszczenia metina
-                if (position == 1) {
-                    String topDamagerMsg = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.top-damager",
-                            "&7Gracz &e{player} &7zadał najwięcej obrażeń Metinowi i otrzymuje najlepsze nagrody!")
-                            .replace("{player}", player.getName())
-                            .replace("{metin_name}", displayName);
-                    participant.sendMessage(ChatColor.translateAlternateColorCodes('&', topDamagerMsg));
-                }
-            }
-        }
-        
-        // Określ szansę na nagrodę na podstawie pozycji gracza
-        double rewardChance = 1.0; // domyślna szansa na nagrodę
-        
-        if (position <= 2) {
-            // Pierwsze dwie osoby zawsze dostają nagrodę (100%)
-            rewardChance = 1.0;
-        } else if (position == 3) {
-            // Trzecia osoba ma 75% szansy
-            rewardChance = 0.75;
-        } else if (position == 4) {
-            // Czwarta osoba ma 50% szansy
-            rewardChance = 0.5;
-        } else if (position >= 5 && position <= 10) {
-            // 5-10 osoby mają po 25% szansy
-            rewardChance = 0.25;
-        } else {
-            // Pozostali mają 10% szansy
-            rewardChance = 0.1;
-        }
-        
-        // Wyślij wiadomość o udziale w zniszczeniu Metina
-        String damageMessage = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.damage-percentage",
-                "&7Zadałeś &e{percentage}% &7obrażeń Metinowi &e{metin_name}&7 (miejsce: &e{position}&7)")
-                .replace("{percentage}", String.format("%.2f", percentage))
-                .replace("{metin_name}", displayName)
-                .replace("{position}", String.valueOf(position));
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&', damageMessage));
-        
-        // Wyślij informację o szansie na nagrodę (jeśli nie jest to 100%)
-        if (rewardChance < 1.0) {
-            String chanceMessage = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.reward-chance",
-                    "&7Ze względu na swoją pozycję ({position}) masz &e{chance}% &7szansy na otrzymanie nagrody")
-                    .replace("{position}", String.valueOf(position))
-                    .replace("{chance}", String.valueOf((int)(rewardChance * 100)));
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', chanceMessage));
-        }
-        
-        // Losowanie czy gracz otrzyma nagrodę (z szansą zależną od pozycji)
-        boolean givesReward = position <= 2 || random.nextDouble() <= rewardChance;
-        
-        if (!givesReward) {
-            // Informuj gracza, że nie otrzymał nagrody
-            String noRewardMessage = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.no-reward",
-                    "&cNie otrzymujesz nagrody - zbyt mały udział w zniszczeniu Metina");
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', noRewardMessage));
-            
-            if (debug) {
-                debugLog("Gracz " + player.getName() + " (pozycja " + position + ") nie otrzymał nagrody (losowanie)");
-            }
-            return;
-        }
-        
-        // Oblicz nagrody na podstawie udziału procentowego
-        List<ItemStack> items = getRewardItems(percentage);
-        
-        // Twórz listę przedmiotów które gracz otrzymał (dla wiadomości)
-        StringBuilder itemsMessage = new StringBuilder();
-        Map<String, Integer> rewardItemsCount = new HashMap<>();
-        
-        // Dodaj przedmioty do ekwipunku gracza
-        for (ItemStack item : items) {
-            HashMap<Integer, ItemStack> notAdded = player.getInventory().addItem(item);
-            
-            // Dodaj przedmiot do listy otrzymanych przedmiotów
-            String itemName = item.getType().toString().toLowerCase().replace("_", " ");
-            rewardItemsCount.merge(itemName, item.getAmount(), Integer::sum);
-            
-            // Jeśli nie można dodać wszystkich przedmiotów do ekwipunku, upuść je na ziemię
-            if (!notAdded.isEmpty()) {
-                for (ItemStack notAddedItem : notAdded.values()) {
-                    player.getWorld().dropItemNaturally(player.getLocation(), notAddedItem);
-                }
-            }
-        }
-        
-        // Stwórz wiadomość o otrzymanych przedmiotach
-        if (!rewardItemsCount.isEmpty()) {
-            int count = 0;
-            for (Map.Entry<String, Integer> entry : rewardItemsCount.entrySet()) {
-                if (count > 0) {
-                    itemsMessage.append("&7, ");
-                }
-                itemsMessage.append("&e").append(entry.getValue()).append("x ").append(entry.getKey());
-                count++;
-            }
-            
-            // Wyświetl wiadomość o otrzymanych przedmiotach
-            String itemRewardMessage = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.items-reward", 
-                    "&aOtrzymałeś przedmioty: {items}")
-                    .replace("{items}", itemsMessage.toString());
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', itemRewardMessage));
-        }
-
-        // Dodaj doświadczenie
-        int experience = calculateExperience(percentage);
-        if (experience > 0) {
-            player.giveExp(experience);
-            // Wyślij wiadomość o otrzymanym doświadczeniu
-            String expMessage = ((Smmetin) plugin).getMetinManager().getMetinsConfig().getString("messages.exp-reward",
-                    "&aOtrzymałeś &e{amount} EXP &aza zniszczenie Metina!")
-                    .replace("{amount}", String.valueOf(experience));
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', expMessage));
-        }
-
-        // Dodaj pieniądze za pomocą EconomyManager
-        try {
-            // Pobierz zakres nagród pieniężnych
-            String moneyRange = config.getString("rewards.money", "0-0");
-            if (!moneyRange.equals("0-0")) {
-                // Podziel zakres na min i max
-                String[] parts = moneyRange.split("-");
-                if (parts.length == 2) {
-                    try {
-                        double minMoney = Double.parseDouble(parts[0]);
-                        double maxMoney = Double.parseDouble(parts[1]);
-                        
-                        // Oblicz ostateczną kwotę z uwzględnieniem procentowego udziału
-                        double moneyAmount = (minMoney + (random.nextDouble() * (maxMoney - minMoney))) * (percentage / 100.0);
-                        moneyAmount = Math.round(moneyAmount * 100.0) / 100.0; // Zaokrąglij do 2 miejsc po przecinku
-                        
-                        // Sprawdź czy EconomyManager jest dostępny i aktywny
-                        Smmetin plugin = (Smmetin) this.plugin;
-                        if (plugin.getEconomyManager() != null && plugin.getEconomyManager().isEnabled()) {
-                            // Dodaj pieniądze graczowi
-                            if (plugin.getEconomyManager().addMoney(player, moneyAmount)) {
-                                if (debug) {
-                                    debugLog("Dodano " + moneyAmount + " do konta gracza " + player.getName());
-                                }
-                                
-                                // Wyślij wiadomość o otrzymanych pieniądzach
-                                String currencyName = plugin.getEconomyManager().getCurrencyName(moneyAmount);
-                                String moneyMessage = plugin.getMetinManager().getMetinsConfig().getString("messages.money-reward", 
-                                        "&aOtrzymałeś &e{amount} {currency} &aza zniszczenie Metina!")
-                                        .replace("{amount}", String.valueOf(moneyAmount))
-                                        .replace("{currency}", currencyName);
-                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', moneyMessage));
-                            }
-                        } else if (debug) {
-                            debugLog("EconomyManager nie jest dostępny lub jest wyłączony");
-                        }
-                    } catch (NumberFormatException e) {
-                        if (debug) {
-                            debugLog("Błąd podczas przetwarzania zakresu pieniędzy: " + e.getMessage());
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            if (debug) {
-                debugLog("Wystąpił błąd podczas dodawania pieniędzy: " + e.getMessage());
-            }
-        }
-        
-        // Aktualizuj statystyki gracza
-        Smmetin plugin = (Smmetin) this.plugin;
-        plugin.getPlayerDataManager().incrementMetinDestroyed(player, config.getName());
-        
-        if (debug) {
-            debugLog("Nagrody przyznane dla gracza " + player.getName());
-        }
-    }
-
     private List<ItemStack> getRewardItems(double percentage) {
         List<ItemStack> items = new ArrayList<>();
         if (config.contains("rewards.items")) {
@@ -874,67 +861,70 @@ public class Metin {
 
                 if (random.nextDouble() <= chance) {
                     int amount = random.nextInt(maxAmount - minAmount + 1) + minAmount;
-                    try {
-                        ItemStack item = new ItemStack(Material.valueOf(material.toUpperCase()), amount);
+                    ItemStack item = new ItemStack(Material.valueOf(material), amount);
+                    ItemMeta meta = item.getItemMeta();
+                    
+                    if (meta != null) {
+                        // Ustaw nazwę
+                        if (itemConfig.containsKey("name")) {
+                            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+                                (String) itemConfig.get("name")));
+                        }
                         
-                        // Sprawdź, czy przedmiot ma niestandardową nazwę lub lore
-                        org.bukkit.inventory.meta.ItemMeta meta = item.getItemMeta();
-                        if (meta != null) {
-                            boolean hasCustomMeta = false;
+                        // Ustaw lore dokładnie takie jak w konfiguracji, bez dodatkowych odstępów
+                        if (itemConfig.containsKey("lore")) {
+                            Object loreObj = itemConfig.get("lore");
+                            List<String> lore = new ArrayList<>();
                             
-                            // Sprawdź, czy jest niestandardowa nazwa
-                            if (itemConfig.containsKey("name")) {
-                                String displayName = (String) itemConfig.get("name");
-                                meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', displayName));
-                                hasCustomMeta = true;
-                                
-                                if (debug) {
-                                    debugLog("Ustawiono niestandardową nazwę przedmiotu: " + displayName);
-                                }
+                            if (loreObj instanceof List) {
+                                ((List<?>) loreObj).forEach(line -> 
+                                    lore.add(ChatColor.translateAlternateColorCodes('&', line.toString())));
+                            } else if (loreObj instanceof String) {
+                                lore.add(ChatColor.translateAlternateColorCodes('&', (String) loreObj));
                             }
                             
-                            // Sprawdź, czy jest niestandardowe lore
-                            if (itemConfig.containsKey("lore")) {
-                                List<String> lore = new ArrayList<>();
-                                
-                                // Może być listą stringów lub jednym stringiem z nowych linii
-                                Object loreObj = itemConfig.get("lore");
-                                if (loreObj instanceof List) {
-                                    for (Object line : (List<?>) loreObj) {
-                                        lore.add(ChatColor.translateAlternateColorCodes('&', line.toString()));
-                                    }
-                                } else if (loreObj instanceof String) {
-                                    String[] lines = ((String) loreObj).split("\n");
-                                    for (String line : lines) {
-                                        lore.add(ChatColor.translateAlternateColorCodes('&', line));
-                                    }
-                                }
-                                
-                                if (!lore.isEmpty()) {
-                                    meta.setLore(lore);
-                                    hasCustomMeta = true;
+                            meta.setLore(lore);
+                        }
+                        
+                        // Dodaj enchanty
+                        if (itemConfig.containsKey("enchantments") && itemConfig.get("enchantments") instanceof Map) {
+                            Map<?, ?> enchants = (Map<?, ?>) itemConfig.get("enchantments");
+                            enchants.forEach((key, value) -> {
+                                if (key instanceof String && value instanceof Number) {
+                                    String enchantKey = (String) key;
+                                    int level = ((Number) value).intValue();
                                     
-                                    if (debug) {
-                                        debugLog("Ustawiono niestandardowe lore przedmiotu: " + lore);
+                                    for (Enchantment enchantment : Enchantment.values()) {
+                                        if (enchantment.getKey().getKey().equalsIgnoreCase(enchantKey)) {
+                                            meta.addEnchant(enchantment, level, true);
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            
-                            // Jeśli były jakiekolwiek niestandardowe metadane, zaktualizuj przedmiot
-                            if (hasCustomMeta) {
-                                item.setItemMeta(meta);
-                            }
+                            });
                         }
                         
-                        items.add(item);
-                        if (debug) {
-                            debugLog("Dodano przedmiot do nagród: " + amount + "x " + material);
+                        // Dodaj flagi przedmiotu
+                        if (itemConfig.containsKey("item_flags") && itemConfig.get("item_flags") instanceof List) {
+                            List<?> flags = (List<?>) itemConfig.get("item_flags");
+                            flags.forEach(flag -> {
+                                if (flag instanceof String) {
+                                    try {
+                                        ItemFlag itemFlag = ItemFlag.valueOf((String) flag);
+                                        meta.addItemFlags(itemFlag);
+                                    } catch (IllegalArgumentException ignored) {
+                                        if (debug) {
+                                            debugLog("Nieprawidłowa flaga przedmiotu: " + flag);
+                                        }
+                                    }
+                                }
+                            });
                         }
-                    } catch (IllegalArgumentException e) {
-                        if (debug) {
-                            debugLog("Nieprawidłowy materiał: " + material);
-                        }
+                        
+                        item.setItemMeta(meta);
                     }
+                    
+                    items.add(item);
                 }
             }
         }
@@ -1167,7 +1157,23 @@ public class Metin {
     public void cleanup() {
         if (debug) {
             debugLog("Rozpoczynam czyszczenie Metina " + id);
+            debugLog("Liczba bloków lawy do usunięcia: " + lavaBlocks.size());
         }
+
+        // Usuń lawę i przywróć oryginalne bloki
+        new HashMap<>(lavaBlocks).forEach((location, originalMaterial) -> {
+            Block block = location.getBlock();
+            if (block.getType() == Material.LAVA) {
+                block.setType(originalMaterial);
+                if (debug) {
+                    debugLog("Usunięto lawę na lokacji: " + location);
+                    debugLog("Przywrócono oryginalny materiał: " + originalMaterial);
+                }
+            } else if (debug) {
+                debugLog("Pominięto blok na lokacji: " + location + " (nie jest lawą)");
+            }
+            lavaBlocks.remove(location);
+        });
 
         // Zatrzymaj timery
         if (particleTask != null) {
@@ -1185,9 +1191,6 @@ public class Metin {
         for (LivingEntity mob : new ArrayList<>(spawnedMobs)) {
             if (mob != null && !mob.isDead()) {
                 mob.remove();
-                if (debug) {
-                    debugLog("Usunięto moba");
-                }
             }
         }
         spawnedMobs.clear();
@@ -1249,5 +1252,48 @@ public class Metin {
                 debugLog("Zaktualizowano konfigurację Metina");
             }
         }
+    }
+
+    private String formatRewardsList(List<ItemStack> items) {
+        return items.stream()
+            .map(item -> {
+                String name = item.hasItemMeta() && item.getItemMeta().hasDisplayName() 
+                    ? item.getItemMeta().getDisplayName() 
+                    : formatMaterialName(item.getType().name());
+                return name + " x" + item.getAmount();
+            })
+            .collect(Collectors.joining(", "));
+    }
+
+    private String formatMaterialName(String materialName) {
+        Map<String, String> translations = new HashMap<>();
+        translations.put("IRON_INGOT", "Sztabka Żelaza");
+        translations.put("GOLD_INGOT", "Sztabka Złota");
+        translations.put("DIAMOND", "Diament");
+        translations.put("EMERALD", "Szmaragd");
+        translations.put("COAL", "Węgiel");
+        translations.put("BREAD", "Chleb");
+        translations.put("STONE", "Kamień");
+        translations.put("COBBLESTONE", "Bruk");
+        translations.put("WOODEN_SWORD", "Drewniany Miecz");
+        translations.put("STONE_SWORD", "Kamienny Miecz");
+        translations.put("IRON_SWORD", "Żelazny Miecz");
+        translations.put("GOLDEN_SWORD", "Złoty Miecz");
+        translations.put("DIAMOND_SWORD", "Diamentowy Miecz");
+        translations.put("BOW", "Łuk");
+        translations.put("ARROW", "Strzała");
+        translations.put("STICK", "Patyk");
+        translations.put("LEATHER", "Skóra");
+        translations.put("PAPER", "Papier");
+        translations.put("BOOK", "Książka");
+        translations.put("APPLE", "Jabłko");
+        translations.put("COOKED_BEEF", "Pieczona Wołowina");
+        translations.put("COOKED_CHICKEN", "Pieczone Kurczak");
+        translations.put("COOKED_PORKCHOP", "Pieczona Wieprzowina");
+        translations.put("GOLDEN_APPLE", "Złote Jabłko");
+        
+        return translations.getOrDefault(materialName, 
+            materialName.substring(0, 1).toUpperCase() + 
+            materialName.substring(1).toLowerCase().replace("_", " "));
     }
 } 

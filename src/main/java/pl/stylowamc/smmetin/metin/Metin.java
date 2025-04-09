@@ -625,6 +625,10 @@ public class Metin {
             Player player = Bukkit.getPlayer(playerId);
             
             if (player != null && player.isOnline()) {
+                // Zwiększ statystyki gracza - używamy ID Metina zamiast nazwy konfiguracji
+                String metinType = id.split("_")[0]; // Pobierz typ Metina z ID (format: typ_numer)
+                ((Smmetin) plugin).getPlayerDataManager().incrementMetinDestroyed(player, metinType);
+                
                 // Przygotuj nagrody
                 List<ItemStack> items = getRewardItems(percentage);
                 int experience = calculateExperience(percentage);
@@ -806,7 +810,7 @@ public class Metin {
                 meta.setLore(lore);
                 
                 // Dodaj enchant ale ukryj go
-                meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+                meta.addEnchant(Enchantment.DURABILITY, 1, true);
                 meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                 
                 // Ustaw metadane z dodanym enchantem i ukrytymi flagami

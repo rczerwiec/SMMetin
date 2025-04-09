@@ -115,6 +115,10 @@ public class PlayerDataManager {
     }
     
     public void incrementMetinDestroyed(Player player, String metinType) {
+        if (debug) {
+            debugLog("Aktualizacja statystyk dla gracza " + player.getName() + " - Metin typu: " + metinType);
+        }
+        
         UUID playerUUID = player.getUniqueId();
         YamlConfiguration config = getPlayerConfig(playerUUID);
         
@@ -136,8 +140,17 @@ public class PlayerDataManager {
                     metinType + " = " + destroyed + ", total = " + total);
         }
         
-        // Zapisz dane
-        savePlayerData(playerUUID);
+        // Zapisz dane natychmiast
+        try {
+            File playerFile = getPlayerFile(playerUUID);
+            config.save(playerFile);
+            if (debug) {
+                debugLog("Zapisano dane gracza " + player.getName() + " do pliku: " + playerFile.getAbsolutePath());
+            }
+        } catch (IOException e) {
+            System.err.println("[SMMetin] Błąd podczas zapisywania danych gracza: " + player.getName());
+            e.printStackTrace();
+        }
     }
     
     public Map<String, Integer> getPlayerMetinStats(UUID playerUUID) {

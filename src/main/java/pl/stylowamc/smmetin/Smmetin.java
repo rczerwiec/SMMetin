@@ -7,6 +7,7 @@ import pl.stylowamc.smmetin.listeners.MetinListener;
 import pl.stylowamc.smmetin.manager.EconomyManager;
 import pl.stylowamc.smmetin.manager.MetinManager;
 import pl.stylowamc.smmetin.manager.PlayerDataManager;
+import pl.stylowamc.smmetin.placeholders.SMMetinExpansion;
 
 public final class Smmetin extends JavaPlugin {
 
@@ -37,6 +38,14 @@ public final class Smmetin extends JavaPlugin {
         // Rejestracja komend
         getCommand("metin").setExecutor(new MetinCommand(this));
         getCommand("metinrewards").setExecutor(new RewardsCommand(this));
+        
+        // Rejestracja placeholderów
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new SMMetinExpansion(this).register();
+            getLogger().info("Zarejestrowano placeholdery SMMetin!");
+        } else {
+            getLogger().warning("Nie znaleziono PlaceholderAPI! Placeholdery nie będą działać.");
+        }
         
         getLogger().info("Plugin SMMetin został uruchomiony!");
     }

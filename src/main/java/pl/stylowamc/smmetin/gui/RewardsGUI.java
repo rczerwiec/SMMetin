@@ -881,21 +881,21 @@ public class RewardsGUI implements Listener {
         
         List<Map<String, Object>> rewards = new ArrayList<>();
         
-        // Pobierz przedmioty z inwentarza (tylko od slotu 18 w górę)
-        for (int i = 18; i < inventory.getSize(); i++) {
+        for (int i = 18; i < 54; i++) {
             ItemStack item = inventory.getItem(i);
-            if (item != null && item.getType() != Material.AIR) {
+            if (item != null && !item.getType().isAir()) {
                 Map<String, Object> rewardMap = new HashMap<>();
-                rewardMap.put("material", item.getType().name());
-                
                 ItemMeta meta = item.getItemMeta();
+                
                 if (meta != null) {
-                    // Zapisz niestandardową nazwę
+                    // Zapisz podstawowe informacje
+                    rewardMap.put("material", item.getType().name());
+                    
+                    // Zapisz nazwę i lore
                     if (meta.hasDisplayName()) {
                         rewardMap.put("name", meta.getDisplayName());
                     }
                     
-                    // Zapisz niestandardowe lore
                     if (meta.hasLore()) {
                         List<String> customLore = new ArrayList<>();
                         
@@ -926,19 +926,24 @@ public class RewardsGUI implements Listener {
                                 .map(ItemFlag::name)
                                 .collect(Collectors.toList());
                         rewardMap.put("item_flags", flagsList);
-                        
-                        if (debug()) {
-                            Bukkit.getLogger().info("[SMMetin] Zapisano flagi przedmiotu: " + flagsList);
-                        }
                     }
                     
                     // Zapisz enchanty
-                    if (!item.getEnchantments().isEmpty()) {
-                        Map<String, Integer> enchants = new HashMap<>();
-                        item.getEnchantments().forEach((enchantment, level) -> {
-                            enchants.put(enchantment.getKey().getKey(), level);
+                    Map<Enchantment, Integer> enchants = item.getEnchantments();
+                    if (!enchants.isEmpty()) {
+                        Map<String, Integer> enchantsMap = new HashMap<>();
+                        enchants.forEach((enchantment, level) -> {
+                            enchantsMap.put(enchantment.getKey().getKey(), level);
                         });
-                        rewardMap.put("enchantments", enchants);
+                        rewardMap.put("enchantments", enchantsMap);
+                        
+                        // Dodaj flagę HIDE_ENCHANTS, jeśli enchanty są ukryte
+                        if (meta.hasItemFlag(ItemFlag.HIDE_ENCHANTS)) {
+                            if (!rewardMap.containsKey("item_flags")) {
+                                rewardMap.put("item_flags", new ArrayList<>());
+                            }
+                            ((List<String>) rewardMap.get("item_flags")).add(ItemFlag.HIDE_ENCHANTS.name());
+                        }
                     }
                     
                     // Pobierz ilość i szansę z lore
@@ -974,26 +979,18 @@ public class RewardsGUI implements Listener {
         }
         
         // Zapisz nagrody do konfiguracji
-        File metinsFile = new File(plugin.getDataFolder(), "metins.yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(metinsFile);
-        String path = "metins." + metinType + ".rewards.items";
+        ConfigurationSection metinConfig = plugin.getMetinManager().getMetinsConfig()
+                .getConfigurationSection("metins." + metinType);
         
-        config.set(path, rewards);
-        
-        try {
-            config.save(metinsFile);
-            player.sendMessage(ChatColor.GREEN + "Nagrody dla Metina " + metinType + " zostały zapisane!");
-            
-            // Tymczasowo wyłącz logi debug w MetinManager
-            boolean previousDebug = plugin.getMetinManager().isDebug();
-            plugin.getMetinManager().setDebug(false);
-            plugin.getMetinManager().reloadConfig();
-            plugin.getMetinManager().setDebug(previousDebug);
-            
-        } catch (IOException e) {
-            player.sendMessage(ChatColor.RED + "Błąd podczas zapisywania nagród: " + e.getMessage());
-            if (debug()) {
-                Bukkit.getLogger().severe("[SMMetin] Błąd podczas zapisywania nagród: " + e.getMessage());
+        if (metinConfig != null) {
+            metinConfig.set("rewards.items", rewards);
+            try {
+                plugin.getMetinManager().getMetinsConfig().save(plugin.getMetinManager().getMetinsFile());
+                if (debug()) {
+                    Bukkit.getLogger().info("[SMMetin] Pomyślnie zapisano nagrody dla Metina: " + metinType);
+                }
+            } catch (IOException e) {
+                Bukkit.getLogger().severe("[SMMetin] Błąd podczas zapisywania nagród dla Metina " + metinType + ": " + e.getMessage());
                 e.printStackTrace();
             }
         }

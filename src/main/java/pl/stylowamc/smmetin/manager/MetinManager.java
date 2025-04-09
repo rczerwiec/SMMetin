@@ -720,4 +720,12 @@ public class MetinManager {
     public void setDebug(boolean debug) {
         this.debug = debug;
     }
+    
+    /**
+     * Zwraca plik konfiguracyjny metinów
+     * @return plik konfiguracyjny metinów
+     */
+    public File getMetinsFile() {
+        return new File(plugin.getDataFolder(), "metins.yml");
+    }
 } 
